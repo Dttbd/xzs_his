@@ -246,7 +246,9 @@ func (r *TicketRepo) CreateTicket(ticket *models.Ticket) error {
 }
 
 func (r *TicketRepo) UpdateTicket(ticket *models.Ticket) error {
-	return r.db.Save(ticket).Error
+	return r.db.Model(ticket).
+		Select("status_id", "assignee_id", "resolved_at", "title", "description", "priority", "hospital_id", "province_id", "region_id").
+		Updates(ticket).Error
 }
 
 func (r *TicketRepo) GenerateTicketNo() string {
