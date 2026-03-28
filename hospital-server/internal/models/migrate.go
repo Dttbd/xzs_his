@@ -8,5 +8,8 @@ func AutoMigrate(db *gorm.DB) error {
 		&Province{},
 		&User{},
 		&Role{},
+		&Hospital{}, &HospitalCategory{}, &FieldDefinition{}, &HospitalField{},
+		&TicketType{}, &TicketStatus{}, &TicketTransition{},
+		&Ticket{}, &TicketComment{}, &TicketAttachment{}, &TicketLog{},
 	)
 }
