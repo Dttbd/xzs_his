@@ -19,3 +19,10 @@ redis:
 jwt:
   secret: "change-me-in-production-use-a-long-random-string"
   expire_hour: 24
+
+minio:
+  endpoint: localhost:9000
+  access_key: minioadmin
+  secret_key: minioadmin123
+  bucket: hospital
+  use_ssl: false
