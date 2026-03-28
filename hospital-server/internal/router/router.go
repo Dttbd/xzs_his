@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/handler/admin"
 	"github.com/dttbd/hospital-server/internal/middleware"
 	"github.com/dttbd/hospital-server/internal/repository"

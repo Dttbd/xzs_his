@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

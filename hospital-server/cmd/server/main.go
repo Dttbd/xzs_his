@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/config"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/internal/router"

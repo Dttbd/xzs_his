@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/internal/repository"
