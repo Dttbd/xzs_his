@@ -1,0 +1,17 @@
+/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+configs/config.local.yaml
+tmp/

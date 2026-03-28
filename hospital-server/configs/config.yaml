@@ -1,0 +1,21 @@
+server:
+  port: 8080
+  mode: debug
+
+database:
+  host: localhost
+  port: 5432
+  user: hospital
+  password: hospital123
+  dbname: hospital_db
+  sslmode: disable
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: "change-me-in-production-use-a-long-random-string"
+  expire_hour: 24
