@@ -88,3 +88,10 @@ type CreateCommentReq struct {
 	Content    string `json:"content" binding:"required"`
 	IsInternal bool   `json:"is_internal"`
 }
+
+type CreateAttachmentReq struct {
+	FileName string `json:"file_name" binding:"required"`
+	FileURL  string `json:"file_url" binding:"required"`
+	FileSize int64  `json:"file_size"`
+	FileType string `json:"file_type"`
+}

@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/google/uuid"
@@ -158,4 +161,111 @@ func (r *TicketRepo) GetTransitionsByFromStatus(fromStatusID uuid.UUID) ([]model
 		return nil, err
 	}
 	return transitions, nil
+}
+
+// --- Ticket CRUD ---
+
+func (r *TicketRepo) ListTickets(q *dto.TicketFilterQuery) ([]models.Ticket, int64, error) {
+	var tickets []models.Ticket
+	var total int64
+
+	query := r.db.Model(&models.Ticket{})
+
+	if q.TypeID != nil {
+		query = query.Where("type_id = ?", *q.TypeID)
+	}
+	if q.StatusID != nil {
+		query = query.Where("status_id = ?", *q.StatusID)
+	}
+	if q.AssigneeID != nil {
+		query = query.Where("assignee_id = ?", *q.AssigneeID)
+	}
+	if q.CreatorID != nil {
+		query = query.Where("creator_id = ?", *q.CreatorID)
+	}
+	if q.HospitalID != nil {
+		query = query.Where("hospital_id = ?", *q.HospitalID)
+	}
+	if q.ProvinceID != nil {
+		query = query.Where("province_id = ?", *q.ProvinceID)
+	}
+	if q.RegionID != nil {
+		query = query.Where("region_id = ?", *q.RegionID)
+	}
+	if q.Priority != nil {
+		query = query.Where("priority = ?", *q.Priority)
+	}
+	if q.DateFrom != "" {
+		query = query.Where("created_at >= ?", q.DateFrom)
+	}
+	if q.DateTo != "" {
+		query = query.Where("created_at <= ?", q.DateTo+" 23:59:59")
+	}
+	if q.Keyword != "" {
+		like := "%" + q.Keyword + "%"
+		query = query.Where("title LIKE ? OR ticket_no LIKE ?", like, like)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := query.
+		Preload("Type").Preload("Status").Preload("Creator").Preload("Assignee").Preload("Hospital").
+		Order("created_at DESC").
+		Offset(q.Offset()).Limit(q.PageSize).
+		Find(&tickets).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return tickets, total, nil
+}
+
+func (r *TicketRepo) GetTicket(id uuid.UUID) (*models.Ticket, error) {
+	var ticket models.Ticket
+	if err := r.db.
+		Preload("Type").Preload("Status").Preload("Creator").Preload("Assignee").
+		Preload("Hospital").Preload("Province").
+		Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).
+		Preload("Comments.User").
+		Preload("Attachments").Preload("Attachments.Uploader").
+		Preload("Logs", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at ASC")
+		}).
+		Preload("Logs.User").
+		First(&ticket, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &ticket, nil
+}
+
+func (r *TicketRepo) CreateTicket(ticket *models.Ticket) error {
+	return r.db.Create(ticket).Error
+}
+
+func (r *TicketRepo) UpdateTicket(ticket *models.Ticket) error {
+	return r.db.Save(ticket).Error
+}
+
+func (r *TicketRepo) GenerateTicketNo() string {
+	today := time.Now().Format("20060102")
+	var count int64
+	r.db.Model(&models.Ticket{}).
+		Where("ticket_no LIKE ?", "TK-"+today+"-%").
+		Count(&count)
+	return fmt.Sprintf("TK-%s-%04d", today, count+1)
+}
+
+func (r *TicketRepo) CreateComment(comment *models.TicketComment) error {
+	return r.db.Create(comment).Error
+}
+
+func (r *TicketRepo) CreateAttachment(att *models.TicketAttachment) error {
+	return r.db.Create(att).Error
+}
+
+func (r *TicketRepo) CreateLog(log *models.TicketLog) error {
+	return r.db.Create(log).Error
 }

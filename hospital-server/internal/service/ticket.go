@@ -1,6 +1,9 @@
 package service
 
 import (
+	"errors"
+	"time"
+
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/internal/repository"
@@ -178,4 +181,167 @@ func (s *TicketService) UpdateTransition(id uuid.UUID, req *dto.UpdateTransition
 
 func (s *TicketService) DeleteTransition(id uuid.UUID) error {
 	return s.repo.DeleteTransition(id)
+}
+
+// --- Ticket Operations ---
+
+func (s *TicketService) ListTickets(q *dto.TicketFilterQuery) ([]models.Ticket, int64, error) {
+	return s.repo.ListTickets(q)
+}
+
+func (s *TicketService) GetTicket(id uuid.UUID) (*models.Ticket, error) {
+	return s.repo.GetTicket(id)
+}
+
+func (s *TicketService) CreateTicket(creatorID uuid.UUID, req *dto.CreateTicketReq) (*models.Ticket, error) {
+	// 1. Get initial status
+	initialStatus, err := s.repo.GetInitialStatus()
+	if err != nil {
+		return nil, errors.New("no initial ticket status configured")
+	}
+
+	// 2. Generate ticket number
+	ticketNo := s.repo.GenerateTicketNo()
+
+	// 3. Create ticket
+	ticket := &models.Ticket{
+		TicketNo:    ticketNo,
+		Title:       req.Title,
+		Description: req.Description,
+		TypeID:      req.TypeID,
+		StatusID:    initialStatus.ID,
+		Priority:    req.Priority,
+		HospitalID:  req.HospitalID,
+		CreatorID:   creatorID,
+		AssigneeID:  req.AssigneeID,
+	}
+
+	if err := s.repo.CreateTicket(ticket); err != nil {
+		return nil, err
+	}
+
+	// 4. Create log
+	_ = s.repo.CreateLog(&models.TicketLog{
+		TicketID: ticket.ID,
+		UserID:   creatorID,
+		Action:   "create",
+		ToStatus: initialStatus.Name,
+	})
+
+	// 5. Return with preloads
+	return s.repo.GetTicket(ticket.ID)
+}
+
+func (s *TicketService) TransitionTicket(ticketID, userID uuid.UUID, req *dto.TransitionTicketReq) (*models.Ticket, error) {
+	// 1. Get current ticket
+	ticket, err := s.repo.GetTicket(ticketID)
+	if err != nil {
+		return nil, errors.New("ticket not found")
+	}
+
+	// 2. Get allowed transitions from current status
+	transitions, err := s.repo.GetTransitionsByFromStatus(ticket.StatusID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Check if requested to_status_id is allowed
+	var matchedTransition *models.TicketTransition
+	for i := range transitions {
+		if transitions[i].ToStatusID == req.ToStatusID {
+			matchedTransition = &transitions[i]
+			break
+		}
+	}
+
+	if matchedTransition == nil {
+		return nil, errors.New("invalid transition")
+	}
+
+	// 4. Record old status name for the log
+	fromStatusName := ticket.Status.Name
+
+	// 5. Update ticket status
+	ticket.StatusID = req.ToStatusID
+
+	// 6. If new status is terminal, set resolved_at
+	if matchedTransition.ToStatus.IsTerminal {
+		now := time.Now()
+		ticket.ResolvedAt = &now
+	}
+
+	if err := s.repo.UpdateTicket(ticket); err != nil {
+		return nil, err
+	}
+
+	// 7. Create log
+	_ = s.repo.CreateLog(&models.TicketLog{
+		TicketID:   ticket.ID,
+		UserID:     userID,
+		Action:     "transition",
+		FromStatus: fromStatusName,
+		ToStatus:   matchedTransition.ToStatus.Name,
+	})
+
+	// 8. Return updated ticket
+	return s.repo.GetTicket(ticket.ID)
+}
+
+func (s *TicketService) AssignTicket(ticketID, userID uuid.UUID, req *dto.AssignTicketReq) (*models.Ticket, error) {
+	// 1. Get ticket
+	ticket, err := s.repo.GetTicket(ticketID)
+	if err != nil {
+		return nil, errors.New("ticket not found")
+	}
+
+	// 2. Update assignee
+	ticket.AssigneeID = &req.AssigneeID
+
+	if err := s.repo.UpdateTicket(ticket); err != nil {
+		return nil, err
+	}
+
+	// 3. Create log
+	_ = s.repo.CreateLog(&models.TicketLog{
+		TicketID: ticket.ID,
+		UserID:   userID,
+		Action:   "assign",
+		Detail:   `{"assignee_id":"` + req.AssigneeID.String() + `"}`,
+	})
+
+	// 4. Return updated ticket
+	return s.repo.GetTicket(ticket.ID)
+}
+
+func (s *TicketService) AddComment(ticketID, userID uuid.UUID, req *dto.CreateCommentReq) (*models.TicketComment, error) {
+	comment := &models.TicketComment{
+		TicketID:   ticketID,
+		UserID:     userID,
+		Content:    req.Content,
+		IsInternal: req.IsInternal,
+	}
+
+	if err := s.repo.CreateComment(comment); err != nil {
+		return nil, err
+	}
+
+	// Create log
+	_ = s.repo.CreateLog(&models.TicketLog{
+		TicketID: ticketID,
+		UserID:   userID,
+		Action:   "comment",
+	})
+
+	return comment, nil
+}
+
+func (s *TicketService) AddAttachment(ticketID, userID uuid.UUID, att *models.TicketAttachment) (*models.TicketAttachment, error) {
+	att.TicketID = ticketID
+	att.UploaderID = userID
+
+	if err := s.repo.CreateAttachment(att); err != nil {
+		return nil, err
+	}
+
+	return att, nil
 }

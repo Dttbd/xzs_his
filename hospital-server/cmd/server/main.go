@@ -12,6 +12,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
+	"github.com/dttbd/hospital-server/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -46,6 +47,20 @@ func main() {
 	}
 	log.Println("casbin enforcer initialized")
 
+	// MinIO (optional - skip if not available)
+	var store *storage.Storage
+	store, err = storage.NewStorage(
+		cfg.MinIO.Endpoint,
+		cfg.MinIO.AccessKey,
+		cfg.MinIO.SecretKey,
+		cfg.MinIO.Bucket,
+		cfg.MinIO.UseSSL,
+	)
+	if err != nil {
+		log.Printf("WARNING: MinIO not available: %v (file upload disabled)", err)
+		store = nil
+	}
+
 	if err := seedDefaults(db, enforcer); err != nil {
 		log.Fatalf("failed to seed defaults: %v", err)
 	}
@@ -54,7 +69,7 @@ func main() {
 	gin.SetMode(cfg.Server.Mode)
 	r := gin.New()
 
-	router.Setup(r, db, enforcer, cfg.JWT.Secret, cfg.JWT.ExpireHour)
+	router.Setup(r, db, enforcer, store, cfg.JWT.Secret, cfg.JWT.ExpireHour)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	log.Printf("server starting on %s", addr)
@@ -127,6 +142,115 @@ func seedDefaults(db *gorm.DB, enforcer *casbin.Enforcer) error {
 		return fmt.Errorf("failed to setup default casbin policies: %w", err)
 	}
 	log.Println("casbin default policies applied")
+
+	// Seed ticket defaults
+	if err := seedTicketDefaults(db); err != nil {
+		return fmt.Errorf("failed to seed ticket defaults: %w", err)
+	}
+
+	return nil
+}
+
+func seedTicketDefaults(db *gorm.DB) error {
+	// Default ticket types
+	ticketTypes := []models.TicketType{
+		{Name: "故障处理", Code: "fault"},
+		{Name: "功能需求", Code: "feature"},
+		{Name: "市场反馈", Code: "market_feedback"},
+		{Name: "客户之声", Code: "customer_voice"},
+		{Name: "内部支持", Code: "internal_support"},
+		{Name: "售前调研", Code: "presales_research"},
+	}
+
+	for _, tt := range ticketTypes {
+		var existing models.TicketType
+		err := db.Where("code = ?", tt.Code).First(&existing).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := db.Create(&tt).Error; err != nil {
+				return fmt.Errorf("failed to create ticket type %s: %w", tt.Code, err)
+			}
+			log.Printf("created ticket type: %s", tt.Code)
+		} else if err != nil {
+			return fmt.Errorf("failed to query ticket type %s: %w", tt.Code, err)
+		}
+	}
+
+	// Default ticket statuses
+	ticketStatuses := []models.TicketStatus{
+		{Name: "待处理", Code: "open", IsInitial: true, IsTerminal: false, Color: "#818cf8"},
+		{Name: "处理中", Code: "in_progress", IsInitial: false, IsTerminal: false, Color: "#fb923c"},
+		{Name: "已完结", Code: "resolved", IsInitial: false, IsTerminal: true, Color: "#34d399"},
+		{Name: "已挂起", Code: "suspended", IsInitial: false, IsTerminal: false, Color: "#fbbf24"},
+		{Name: "已转派", Code: "reassigned", IsInitial: false, IsTerminal: false, Color: "#a78bfa"},
+		{Name: "已关闭", Code: "closed", IsInitial: false, IsTerminal: true, Color: "#64748b"},
+	}
+
+	for _, ts := range ticketStatuses {
+		var existing models.TicketStatus
+		err := db.Where("code = ?", ts.Code).First(&existing).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := db.Create(&ts).Error; err != nil {
+				return fmt.Errorf("failed to create ticket status %s: %w", ts.Code, err)
+			}
+			log.Printf("created ticket status: %s", ts.Code)
+		} else if err != nil {
+			return fmt.Errorf("failed to query ticket status %s: %w", ts.Code, err)
+		}
+	}
+
+	// Look up status IDs by code for transitions
+	statusMap := make(map[string]models.TicketStatus)
+	var allStatuses []models.TicketStatus
+	if err := db.Find(&allStatuses).Error; err != nil {
+		return fmt.Errorf("failed to fetch ticket statuses: %w", err)
+	}
+	for _, s := range allStatuses {
+		statusMap[s.Code] = s
+	}
+
+	// Default transitions
+	transitions := []struct {
+		From string
+		To   string
+		Name string
+	}{
+		{"open", "in_progress", "接单"},
+		{"in_progress", "resolved", "完结"},
+		{"in_progress", "suspended", "挂起"},
+		{"in_progress", "reassigned", "转派"},
+		{"suspended", "in_progress", "恢复处理"},
+		{"suspended", "closed", "关闭"},
+		{"reassigned", "in_progress", "接单处理"},
+	}
+
+	for _, t := range transitions {
+		fromStatus, ok := statusMap[t.From]
+		if !ok {
+			log.Printf("WARNING: status %s not found, skipping transition %s->%s", t.From, t.From, t.To)
+			continue
+		}
+		toStatus, ok := statusMap[t.To]
+		if !ok {
+			log.Printf("WARNING: status %s not found, skipping transition %s->%s", t.To, t.From, t.To)
+			continue
+		}
+
+		var existing models.TicketTransition
+		err := db.Where("from_status_id = ? AND to_status_id = ?", fromStatus.ID, toStatus.ID).First(&existing).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			transition := models.TicketTransition{
+				FromStatusID: fromStatus.ID,
+				ToStatusID:   toStatus.ID,
+				Name:         t.Name,
+			}
+			if err := db.Create(&transition).Error; err != nil {
+				return fmt.Errorf("failed to create transition %s->%s: %w", t.From, t.To, err)
+			}
+			log.Printf("created ticket transition: %s -> %s (%s)", t.From, t.To, t.Name)
+		} else if err != nil {
+			return fmt.Errorf("failed to query transition %s->%s: %w", t.From, t.To, err)
+		}
+	}
 
 	return nil
 }

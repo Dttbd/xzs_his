@@ -6,11 +6,15 @@ import (
 	"github.com/dttbd/hospital-server/internal/middleware"
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/dttbd/hospital-server/internal/service"
+	"github.com/dttbd/hospital-server/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, jwtSecret string, jwtExpireH int) {
+func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int) {
+	// store is available for file upload routes (wired in Task 8)
+	_ = store
+
 	// Repositories
 	userRepo := repository.NewUserRepo(db)
 	orgRepo := repository.NewOrganizationRepo(db)
