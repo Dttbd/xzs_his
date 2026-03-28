@@ -1,0 +1,6 @@
+- [Project Overview](project_overview.md) — HIS 项目总览，技术栈，6阶段路线图，当前进度
+- [Design Style](design_style.md) — 前端视觉风格偏好：现代扁平化，柔和暗色，Lucide线性图标
+- [Backend Architecture](backend_architecture.md) — 后端架构决策：Clean Architecture 分层，模块划分，关键设计模式
+- [API Reference](api_reference.md) — 已实现的 API 端点清单
+- [Data Models](data_models.md) — 数据库实体关系和关键字段说明
+- [Bugs Fixed](bugs_fixed.md) — 开发过程中发现并修复的 bug 记录
