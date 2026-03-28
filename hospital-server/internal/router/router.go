@@ -14,16 +14,19 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, jwtSecret stri
 	// Repositories
 	userRepo := repository.NewUserRepo(db)
 	orgRepo := repository.NewOrganizationRepo(db)
+	roleRepo := repository.NewRoleRepo(db)
 
 	// Services
 	authSvc := service.NewAuthService(db, jwtSecret, jwtExpireH)
 	userSvc := service.NewUserService(userRepo)
 	orgSvc := service.NewOrganizationService(orgRepo)
+	roleSvc := service.NewRoleService(roleRepo, enforcer)
 
 	// Handlers
 	authH := admin.NewAuthHandler(authSvc)
 	userH := admin.NewUserHandler(userSvc)
 	orgH := admin.NewOrganizationHandler(orgSvc)
+	roleH := admin.NewRoleHandler(roleSvc)
 
 	// Global middleware
 	r.Use(middleware.CORS())
@@ -69,5 +72,13 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, jwtSecret stri
 		adminV1.GET("/provinces/:id", orgH.GetProvince)
 		adminV1.PUT("/provinces/:id", orgH.UpdateProvince)
 		adminV1.DELETE("/provinces/:id", orgH.DeleteProvince)
+
+		// Roles
+		adminV1.GET("/roles", roleH.List)
+		adminV1.POST("/roles", roleH.Create)
+		adminV1.GET("/roles/:id", roleH.Get)
+		adminV1.PUT("/roles/:id", roleH.Update)
+		adminV1.DELETE("/roles/:id", roleH.Delete)
+		adminV1.PUT("/roles/:id/permissions", roleH.SetPermissions)
 	}
 }
