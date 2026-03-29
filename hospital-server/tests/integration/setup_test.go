@@ -64,7 +64,7 @@ func setupTestServer(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-	router.Setup(r, db, enforcer, nil, testJWTSecret, 24)
+	router.Setup(r, db, enforcer, nil, testJWTSecret, 24, nil)
 
 	return r, db
 }
