@@ -20,6 +20,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	ticketRepo := repository.NewTicketRepo(db)
 	bulletinRepo := repository.NewBulletinRepo(db)
 	notificationRepo := repository.NewNotificationRepo(db)
+	reportRepo := repository.NewReportRepo(db)
 
 	// Services
 	authSvc := service.NewAuthService(db, jwtSecret, jwtExpireH)
@@ -30,6 +31,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	ticketSvc := service.NewTicketService(ticketRepo)
 	bulletinSvc := service.NewBulletinService(bulletinRepo)
 	notificationSvc := service.NewNotificationService(notificationRepo)
+	reportSvc := service.NewReportService(reportRepo)
 
 	// Handlers
 	authH := admin.NewAuthHandler(authSvc)
@@ -41,6 +43,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	ticketConfigH := admin.NewTicketConfigHandler(ticketSvc)
 	bulletinH := admin.NewBulletinHandler(bulletinSvc)
 	notificationH := admin.NewNotificationHandler(notificationSvc)
+	reportH := admin.NewReportHandler(reportSvc)
 
 	// Global middleware
 	r.Use(middleware.CORS())
@@ -161,6 +164,13 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 		adminV1.GET("/notifications/unread-count", notificationH.UnreadCount)
 		adminV1.PUT("/notifications/read-all", notificationH.MarkAllRead)
 		adminV1.PUT("/notifications/:id/read", notificationH.MarkRead)
+
+		// Reports
+		adminV1.GET("/reports/overview", reportH.Overview)
+		adminV1.GET("/reports/hospital-stats", reportH.HospitalStats)
+		adminV1.GET("/reports/ticket-stats", reportH.TicketStats)
+		adminV1.GET("/reports/ticket-trend", reportH.TicketTrend)
+		adminV1.GET("/reports/sales-stats", reportH.SalesStats)
 	}
 
 	// Common file endpoints (no admin auth group required for GetFile)
