@@ -1,0 +1,13 @@
+{
+  "name": "hospital-web",
+  "private": true,
+  "scripts": {
+    "dev:admin": "pnpm -F @hospital/admin dev",
+    "dev:portal": "pnpm -F @hospital/portal dev",
+    "build:admin": "pnpm -F @hospital/admin build",
+    "build:portal": "pnpm -F @hospital/portal build"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}
