@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/hibiken/asynq"
 )
@@ -19,7 +20,7 @@ func NewNotificationHandler(notifSvc *service.NotificationService) *Notification
 }
 
 func (h *NotificationHandler) HandleSendNotification(ctx context.Context, t *asynq.Task) error {
-	var payload NotificationPayload
+	var payload queue.NotificationPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("unmarshal payload: %w", err)
 	}
@@ -37,7 +38,7 @@ func (h *NotificationHandler) HandleSendNotification(ctx context.Context, t *asy
 }
 
 func HandleSendWechatMsg(ctx context.Context, t *asynq.Task) error {
-	var payload WechatMsgPayload
+	var payload queue.WechatMsgPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("unmarshal payload: %w", err)
 	}

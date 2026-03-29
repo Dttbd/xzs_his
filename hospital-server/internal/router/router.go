@@ -4,6 +4,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/handler/admin"
 	"github.com/dttbd/hospital-server/internal/middleware"
+	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/dttbd/hospital-server/pkg/storage"
@@ -11,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int) {
+func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int, asynqClient *queue.Client) {
 	// Repositories
 	userRepo := repository.NewUserRepo(db)
 	orgRepo := repository.NewOrganizationRepo(db)
@@ -28,7 +29,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	orgSvc := service.NewOrganizationService(orgRepo)
 	roleSvc := service.NewRoleService(roleRepo, enforcer)
 	hospitalSvc := service.NewHospitalService(hospitalRepo)
-	ticketSvc := service.NewTicketService(ticketRepo)
+	ticketSvc := service.NewTicketService(ticketRepo, asynqClient)
 	bulletinSvc := service.NewBulletinService(bulletinRepo)
 	notificationSvc := service.NewNotificationService(notificationRepo)
 	reportSvc := service.NewReportService(reportRepo)

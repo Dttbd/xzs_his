@@ -9,6 +9,7 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/config"
 	"github.com/dttbd/hospital-server/internal/models"
+	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
@@ -61,6 +62,11 @@ func main() {
 		store = nil
 	}
 
+	// Asynq client (for async tasks)
+	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
+	asynqClient := queue.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
+	defer asynqClient.Close()
+
 	if err := seedDefaults(db, enforcer); err != nil {
 		log.Fatalf("failed to seed defaults: %v", err)
 	}
@@ -69,7 +75,7 @@ func main() {
 	gin.SetMode(cfg.Server.Mode)
 	r := gin.New()
 
-	router.Setup(r, db, enforcer, store, cfg.JWT.Secret, cfg.JWT.ExpireHour)
+	router.Setup(r, db, enforcer, store, cfg.JWT.Secret, cfg.JWT.ExpireHour, asynqClient)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	log.Printf("server starting on %s", addr)

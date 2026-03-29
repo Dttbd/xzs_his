@@ -2,20 +2,23 @@ package service
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
+	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/google/uuid"
 )
 
 type TicketService struct {
-	repo *repository.TicketRepo
+	repo        *repository.TicketRepo
+	asynqClient *queue.Client
 }
 
-func NewTicketService(repo *repository.TicketRepo) *TicketService {
-	return &TicketService{repo: repo}
+func NewTicketService(repo *repository.TicketRepo, asynqClient *queue.Client) *TicketService {
+	return &TicketService{repo: repo, asynqClient: asynqClient}
 }
 
 // TicketType methods
@@ -228,7 +231,27 @@ func (s *TicketService) CreateTicket(creatorID uuid.UUID, req *dto.CreateTicketR
 		ToStatus: initialStatus.Name,
 	})
 
-	// 5. Return with preloads
+	// 5. Notify assignee if set
+	if s.asynqClient != nil && ticket.AssigneeID != nil {
+		assigneeID := *ticket.AssigneeID
+		ticketID := ticket.ID
+		ticketTitle := ticket.Title
+		go func() {
+			err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
+				UserIDs: []uuid.UUID{assigneeID},
+				Title:   "新工单分配给您",
+				Content: ticketTitle,
+				Type:    "ticket",
+				RefType: "ticket",
+				RefID:   &ticketID,
+			})
+			if err != nil {
+				log.Printf("failed to enqueue notification: %v", err)
+			}
+		}()
+	}
+
+	// 6. Return with preloads
 	return s.repo.GetTicket(ticket.ID)
 }
 
@@ -283,7 +306,27 @@ func (s *TicketService) TransitionTicket(ticketID, userID uuid.UUID, req *dto.Tr
 		ToStatus:   matchedTransition.ToStatus.Name,
 	})
 
-	// 8. Return updated ticket
+	// 8. Notify ticket creator about status change
+	if s.asynqClient != nil {
+		creatorID := ticket.CreatorID
+		ticketID := ticket.ID
+		toStatusName := matchedTransition.ToStatus.Name
+		go func() {
+			err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
+				UserIDs: []uuid.UUID{creatorID},
+				Title:   "工单状态已更新",
+				Content: "工单「" + ticket.Title + "」已流转至：" + toStatusName,
+				Type:    "ticket",
+				RefType: "ticket",
+				RefID:   &ticketID,
+			})
+			if err != nil {
+				log.Printf("failed to enqueue notification: %v", err)
+			}
+		}()
+	}
+
+	// 9. Return updated ticket
 	return s.repo.GetTicket(ticket.ID)
 }
 
@@ -309,7 +352,27 @@ func (s *TicketService) AssignTicket(ticketID, userID uuid.UUID, req *dto.Assign
 		Detail:   `{"assignee_id":"` + req.AssigneeID.String() + `"}`,
 	})
 
-	// 4. Return updated ticket
+	// 4. Notify new assignee
+	if s.asynqClient != nil {
+		assigneeID := req.AssigneeID
+		ticketID := ticket.ID
+		ticketTitle := ticket.Title
+		go func() {
+			err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
+				UserIDs: []uuid.UUID{assigneeID},
+				Title:   "工单已分配给您",
+				Content: ticketTitle,
+				Type:    "ticket",
+				RefType: "ticket",
+				RefID:   &ticketID,
+			})
+			if err != nil {
+				log.Printf("failed to enqueue notification: %v", err)
+			}
+		}()
+	}
+
+	// 5. Return updated ticket
 	return s.repo.GetTicket(ticket.ID)
 }
 
@@ -331,6 +394,39 @@ func (s *TicketService) AddComment(ticketID, userID uuid.UUID, req *dto.CreateCo
 		UserID:   userID,
 		Action:   "comment",
 	})
+
+	// Notify the other party: if commenter is creator, notify assignee; if commenter is assignee, notify creator
+	if s.asynqClient != nil {
+		ticket, err := s.repo.GetTicket(ticketID)
+		if err == nil {
+			var recipientIDs []uuid.UUID
+			if userID == ticket.CreatorID {
+				// commenter is creator, notify assignee
+				if ticket.AssigneeID != nil {
+					recipientIDs = []uuid.UUID{*ticket.AssigneeID}
+				}
+			} else {
+				// commenter is assignee (or other), notify creator
+				recipientIDs = []uuid.UUID{ticket.CreatorID}
+			}
+			if len(recipientIDs) > 0 {
+				ticketRef := ticketID
+				go func() {
+					err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
+						UserIDs: recipientIDs,
+						Title:   "工单有新评论",
+						Content: req.Content,
+						Type:    "ticket",
+						RefType: "ticket",
+						RefID:   &ticketRef,
+					})
+					if err != nil {
+						log.Printf("failed to enqueue notification: %v", err)
+					}
+				}()
+			}
+		}
+	}
 
 	return comment, nil
 }
