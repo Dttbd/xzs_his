@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { Menu, Bell } from 'lucide-react'
-import { ThemeToggle, useAuthStore } from '@hospital/shared'
+import { useQuery } from '@tanstack/react-query'
+import { ThemeToggle, useAuthStore, getUnreadCount } from '@hospital/shared'
+import { NotificationDropdown } from './notification-dropdown'
 
 interface TopbarProps {
   onMenuClick: () => void
@@ -8,6 +11,16 @@ interface TopbarProps {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+
+  const [notifOpen, setNotifOpen] = useState(false)
+
+  const { data: unreadData } = useQuery({
+    queryKey: ['unread-count'],
+    queryFn: () => getUnreadCount(),
+    refetchInterval: 30_000,
+  })
+
+  const unreadCount = unreadData?.count ?? 0
 
   return (
     <header className="h-[52px] flex items-center justify-between px-4 border-b border-border bg-card shrink-0">
@@ -25,10 +38,22 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       {/* Right */}
       <div className="flex items-center gap-2">
         {/* Notification bell */}
-        <button className="relative p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors">
-          <Bell size={20} strokeWidth={1.5} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setNotifOpen((v) => !v)}
+            className="relative p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors"
+            aria-label="通知"
+          >
+            <Bell size={20} strokeWidth={1.5} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+            )}
+          </button>
+
+          {notifOpen && (
+            <NotificationDropdown onClose={() => setNotifOpen(false)} />
+          )}
+        </div>
 
         <ThemeToggle />
 
