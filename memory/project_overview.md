@@ -19,16 +19,17 @@ type: project
 | Phase 3 | 支撑系统（公告/通知/报表聚合/Asynq） | ✅ 完成 |
 | Phase 4 | 前端基础（Monorepo/共享组件/布局/认证） | ✅ 完成 |
 | Phase 5 | 管理端 SPA（仪表盘/医院/工单/报表页面） | ✅ 完成 |
-| Phase 6 | 客户门户 SPA（工单提交/进度/留言） | 待开发 |
+| Phase 6 | 客户门户 SPA（工单提交/进度/留言） | ✅ 完成 |
 
 ## 当前代码统计
 
-- 后端 Go 代码: 63 个文件, ~6250 行
-- 前端 React/TS 代码: 50+ 文件, shared/admin/portal 三个包
-- 35+ git commits
+- 后端 Go 代码: 71 个文件
+- 前端 React/TS 代码: 71 个文件, shared/admin/portal 三个包
+- 54 个 git commits
 - 15 个集成测试 + 4 个单元测试，全部通过
 - Asynq 异步任务 worker（独立进程）
-- Admin SPA 构建: 1.66MB JS (含ECharts, gzip 521KB) + CSS
+- Admin SPA: 1.66MB JS (含ECharts, gzip 521KB)
+- Portal SPA: 357KB JS (gzip 115KB)
 - Docker Compose: PostgreSQL 16 + Redis 7 + MinIO
 
 ## How to apply

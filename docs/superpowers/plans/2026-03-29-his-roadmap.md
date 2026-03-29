@@ -11,7 +11,7 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 | 3 | Supporting Backend | Bulletin system, notification system (in-app + WeChat push), report aggregation APIs, Asynq worker setup | ✅ Complete | Phase 2 |
 | 4 | Frontend Foundation | Monorepo scaffold (pnpm + Vite), shared package (API client, components, theme system), admin layout (sidebar/topbar/responsive), auth flow | ✅ Complete | Phase 1 |
 | 5 | Admin SPA | Dashboard, hospital pages, ticket pages, bulletin pages, report pages, user/role pages, system settings pages | ✅ Complete | Phase 3 + 4 |
-| 6 | Portal SPA | Customer portal layout, ticket submit/view/comment, profile page | Pending | Phase 3 + 4 |
+| 6 | Portal SPA | Customer portal layout, ticket submit/view/comment, profile page | ✅ Complete | Phase 3 + 4 |
 
 ## Progress Summary
 
@@ -77,4 +77,18 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 - Settings: org structure (region/province), ticket config (type/status/transition), field definitions
 - Production build: 1.66MB JS (gzip 521KB, includes ECharts)
 
-- Phase 6 plan to be written when starting
+### Phase 6 — Portal SPA (2026-03-29)
+- 3 tasks, 3 commits
+- Portal layout: simple topbar + content, mobile-first
+- Login page with portal-specific auth endpoint
+- Ticket pages: card-based list, create dialog, detail with comment timeline
+- Profile page with view/edit toggle
+- Shared portal API module added to @hospital/shared
+- Portal build: 357KB JS (gzip 115KB)
+
+## Final Stats
+- **Total commits:** 54
+- **Backend:** 71 Go files, ~6500 lines
+- **Frontend:** 71 TS/TSX files across 3 packages
+- **Tests:** 15 integration + 4 unit, all passing
+- **All 6 phases complete**
