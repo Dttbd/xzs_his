@@ -1,0 +1,58 @@
+@theme {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+
+  --color-status-pending: var(--status-pending);
+  --color-status-progress: var(--status-progress);
+  --color-status-resolved: var(--status-resolved);
+  --color-status-suspended: var(--status-suspended);
+  --color-status-closed: var(--status-closed);
+}
+
+:root {
+  --background: #f8fafc;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --muted-foreground: #94a3b8;
+  --accent: #6366f1;
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+
+  --status-pending: #6366f1;
+  --status-progress: #ea580c;
+  --status-resolved: #059669;
+  --status-suspended: #d97706;
+  --status-closed: #94a3b8;
+}
+
+.dark {
+  --background: #121218;
+  --card: #1a1a24;
+  --border: rgba(148, 163, 184, 0.08);
+  --foreground: #e2e8f0;
+  --muted: #94a3b8;
+  --muted-foreground: #64748b;
+  --accent: #818cf8;
+  --accent-foreground: #ffffff;
+  --destructive: #f87171;
+
+  --status-pending: #818cf8;
+  --status-progress: #fb923c;
+  --status-resolved: #34d399;
+  --status-suspended: #fbbf24;
+  --status-closed: #64748b;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}

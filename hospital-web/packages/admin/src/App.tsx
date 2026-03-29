@@ -1,8 +1,13 @@
+import { ThemeProvider, ThemeToggle } from '@hospital/shared'
+
 function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-      <h1 className="text-2xl font-semibold">HIS 管理系统</h1>
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4">
+        <h1 className="text-2xl font-semibold">HIS 管理系统</h1>
+        <ThemeToggle />
+      </div>
+    </ThemeProvider>
   )
 }
 
