@@ -11,6 +11,9 @@ import { TicketDetailPage } from '../pages/ticket/ticket-detail'
 import { BulletinListPage } from '../pages/bulletin'
 import { BulletinDetailPage } from '../pages/bulletin/bulletin-detail'
 import { ReportPage } from '../pages/report'
+import { UserListPage } from '../pages/user'
+import { RoleListPage } from '../pages/user/role-list'
+import { SettingsPage } from '../pages/settings'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -42,8 +45,9 @@ export const router = createBrowserRouter([
       { path: 'bulletins', element: <BulletinListPage /> },
       { path: 'bulletins/:id', element: <BulletinDetailPage /> },
       { path: 'reports', element: <ReportPage /> },
-      { path: 'users', element: <PlaceholderPage title="用户管理" /> },
-      { path: 'settings', element: <PlaceholderPage title="系统设置" /> },
+      { path: 'users', element: <UserListPage /> },
+      { path: 'users/roles', element: <RoleListPage /> },
+      { path: 'settings', element: <SettingsPage /> },
     ],
   },
 ])
