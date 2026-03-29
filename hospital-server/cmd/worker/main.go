@@ -1,0 +1,60 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+
+	"github.com/dttbd/hospital-server/internal/config"
+	"github.com/dttbd/hospital-server/internal/models"
+	"github.com/dttbd/hospital-server/internal/repository"
+	"github.com/dttbd/hospital-server/internal/service"
+	"github.com/dttbd/hospital-server/internal/worker"
+	"github.com/hibiken/asynq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+)
+
+func main() {
+	configPath := flag.String("config", "configs/config.yaml", "config file path")
+	flag.Parse()
+
+	cfg, err := config.Load(*configPath)
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
+	}
+
+	// Database
+	db, err := gorm.Open(postgres.Open(cfg.Database.DSN()), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+		log.Fatalf("failed to connect database: %v", err)
+	}
+	if err := models.AutoMigrate(db); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
+
+	// Services
+	notifRepo := repository.NewNotificationRepo(db)
+	notifSvc := service.NewNotificationService(notifRepo)
+
+	// Asynq server
+	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
+	srv := asynq.NewServer(
+		asynq.RedisClientOpt{Addr: redisAddr, Password: cfg.Redis.Password, DB: cfg.Redis.DB},
+		asynq.Config{Concurrency: 10},
+	)
+
+	// Register handlers
+	notifHandler := worker.NewNotificationHandler(notifSvc)
+	mux := asynq.NewServeMux()
+	mux.HandleFunc(worker.TaskSendNotification, notifHandler.HandleSendNotification)
+	mux.HandleFunc(worker.TaskSendWechatMsg, worker.HandleSendWechatMsg)
+
+	log.Println("worker starting...")
+	if err := srv.Run(mux); err != nil {
+		log.Fatalf("worker failed: %v", err)
+	}
+}
