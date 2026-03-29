@@ -12,7 +12,7 @@ export {
 } from './hospitals'
 
 // Tickets
-export type { Ticket, TicketType, TicketStatus, TicketTransition, TicketComment, TicketAttachment } from './tickets'
+export type { Ticket, TicketType, TicketStatus, TicketTransition, TicketComment, TicketAttachment, TicketLog } from './tickets'
 export {
   listTickets, getTicket, createTicket, transitionTicket, assignTicket, addComment, addAttachment,
   listTicketTypes, createTicketType, updateTicketType, deleteTicketType,

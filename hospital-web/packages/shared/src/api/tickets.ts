@@ -63,6 +63,7 @@ export interface Ticket {
   province?: { id: string; name: string; code: string }
   comments?: TicketComment[]
   attachments?: TicketAttachment[]
+  logs?: TicketLog[]
 }
 
 export interface TicketComment {
@@ -88,6 +89,19 @@ export interface TicketAttachment {
   created_at: string
   updated_at: string
   uploader?: { id: string; username: string; real_name: string }
+}
+
+export interface TicketLog {
+  id: string
+  ticket_id: string
+  user_id: string
+  action: string
+  from_status: string
+  to_status: string
+  detail: string
+  created_at: string
+  updated_at: string
+  user?: { id: string; username: string; real_name: string }
 }
 
 // --- Ticket CRUD ---

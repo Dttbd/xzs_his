@@ -6,6 +6,8 @@ import { DashboardPage } from '../pages/dashboard'
 import { HospitalListPage } from '../pages/hospital'
 import { HospitalDetailPage } from '../pages/hospital/hospital-detail'
 import { HospitalSummaryPage } from '../pages/hospital/hospital-summary'
+import { TicketListPage } from '../pages/ticket'
+import { TicketDetailPage } from '../pages/ticket/ticket-detail'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -32,7 +34,8 @@ export const router = createBrowserRouter([
       { path: 'hospitals', element: <HospitalListPage /> },
       { path: 'hospitals/summary', element: <HospitalSummaryPage /> },
       { path: 'hospitals/:id', element: <HospitalDetailPage /> },
-      { path: 'tickets', element: <PlaceholderPage title="工单中心" /> },
+      { path: 'tickets', element: <TicketListPage /> },
+      { path: 'tickets/:id', element: <TicketDetailPage /> },
       { path: 'bulletins', element: <PlaceholderPage title="公告管理" /> },
       { path: 'reports', element: <PlaceholderPage title="报表中心" /> },
       { path: 'users', element: <PlaceholderPage title="用户管理" /> },

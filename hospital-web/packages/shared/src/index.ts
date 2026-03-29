@@ -16,7 +16,7 @@ export {
 } from './api'
 
 // API — Tickets
-export type { Ticket, TicketType, TicketStatus, TicketTransition, TicketComment, TicketAttachment } from './api'
+export type { Ticket, TicketType, TicketStatus, TicketTransition, TicketComment, TicketAttachment, TicketLog } from './api'
 export {
   listTickets, getTicket, createTicket, transitionTicket, assignTicket, addComment, addAttachment,
   listTicketTypes, createTicketType, updateTicketType, deleteTicketType,
