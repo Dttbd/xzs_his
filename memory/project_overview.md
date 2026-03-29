@@ -16,16 +16,17 @@ type: project
 |------|------|------|
 | Phase 1 | 后端基础（脚手架/认证/用户/组织/RBAC） | ✅ 完成 |
 | Phase 2 | 核心业务（医院CRUD/工单系统/文件上传） | ✅ 完成 |
-| Phase 3 | 支撑系统（公告/通知/报表聚合/Asynq） | 待开发 |
+| Phase 3 | 支撑系统（公告/通知/报表聚合/Asynq） | ✅ 完成 |
 | Phase 4 | 前端基础（Monorepo/共享组件/布局/认证） | 待开发 |
 | Phase 5 | 管理端 SPA（仪表盘/医院/工单/报表页面） | 待开发 |
 | Phase 6 | 客户门户 SPA（工单提交/进度/留言） | 待开发 |
 
 ## 当前代码统计
 
-- 后端 Go 代码: 48 个文件, ~4500 行
-- 24 个 git commits
-- 12 个集成测试 + 4 个单元测试，全部通过
+- 后端 Go 代码: 63 个文件, ~6250 行
+- 32 个 git commits
+- 15 个集成测试 + 4 个单元测试，全部通过
+- Asynq 异步任务 worker（独立进程）
 - Docker Compose: PostgreSQL 16 + Redis 7 + MinIO
 
 ## How to apply

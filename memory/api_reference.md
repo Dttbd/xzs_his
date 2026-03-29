@@ -75,8 +75,30 @@ POST /upload         # 文件上传 (→MinIO)
 GET  /files/:id      # 文件预览/下载
 ```
 
-### 待实现 (Phase 3+)
-- 公告 CRUD (/bulletins)
-- 通知系统 (/notifications)
-- 报表聚合 (/reports/*)
+**公告管理**
+```
+GET/POST          /bulletins
+GET/PUT/DELETE    /bulletins/:id
+PUT               /bulletins/:id/publish
+```
+
+**通知系统**
+```
+GET               /notifications
+GET               /notifications/unread-count
+PUT               /notifications/read-all
+PUT               /notifications/:id/read
+```
+
+**报表中心**
+```
+GET  /reports/overview          # 总览仪表盘
+GET  /reports/hospital-stats    # 医院统计 (group_by=province|region|category|specialty_type)
+GET  /reports/ticket-stats      # 工单统计 (group_by=type|status|assignee)
+GET  /reports/ticket-trend      # 工单趋势 (interval=day|week|month)
+GET  /reports/sales-stats       # 销售业绩
+```
+
+### 待实现 (Phase 4-6)
 - 客户门户 API (/api/portal/v1/*)
+- 前端 SPA (admin + portal)
