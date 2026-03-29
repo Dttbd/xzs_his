@@ -60,6 +60,15 @@ export {
 export type { UploadResult } from './api'
 export { uploadFile } from './api'
 
+// API — Portal
+export type { PortalTicket, PortalComment, PortalAttachment } from './api'
+export {
+  portalLoginApi,
+  listPortalTickets, getPortalTicket, createPortalTicket,
+  addPortalComment, addPortalAttachment,
+  getPortalProfile, updatePortalProfile,
+} from './api'
+
 // Stores
 export { useAuthStore } from './stores/auth-store'
 

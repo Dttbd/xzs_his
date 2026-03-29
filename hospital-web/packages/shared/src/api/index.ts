@@ -55,3 +55,12 @@ export {
 // Upload
 export type { UploadResult } from './upload'
 export { uploadFile } from './upload'
+
+// Portal
+export type { PortalTicket, PortalComment, PortalAttachment } from './portal'
+export {
+  portalLoginApi,
+  listPortalTickets, getPortalTicket, createPortalTicket,
+  addPortalComment, addPortalAttachment,
+  getPortalProfile, updatePortalProfile,
+} from './portal'

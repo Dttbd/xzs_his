@@ -2,3 +2,7 @@ node_modules
 dist
 .env.local
 *.tsbuildinfo
+# TypeScript build artifacts in source dirs
+packages/*/src/**/*.js
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.js.map
