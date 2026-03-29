@@ -10,7 +10,7 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 | 2 | Core Business Backend | Hospital CRUD (dynamic fields, filtering, export), Ticket system (state machine, comments, attachments), file upload (MinIO) | ✅ Complete | Phase 1 |
 | 3 | Supporting Backend | Bulletin system, notification system (in-app + WeChat push), report aggregation APIs, Asynq worker setup | ✅ Complete | Phase 2 |
 | 4 | Frontend Foundation | Monorepo scaffold (pnpm + Vite), shared package (API client, components, theme system), admin layout (sidebar/topbar/responsive), auth flow | ✅ Complete | Phase 1 |
-| 5 | Admin SPA | Dashboard, hospital pages, ticket pages, bulletin pages, report pages, user/role pages, system settings pages | Pending | Phase 3 + 4 |
+| 5 | Admin SPA | Dashboard, hospital pages, ticket pages, bulletin pages, report pages, user/role pages, system settings pages | ✅ Complete | Phase 3 + 4 |
 | 6 | Portal SPA | Customer portal layout, ticket submit/view/comment, profile page | Pending | Phase 3 + 4 |
 
 ## Progress Summary
@@ -62,4 +62,19 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 - `2026-03-29-his-phase2-core-business.md` — Phase 2 (completed)
 - `2026-03-29-his-phase3-supporting-backend.md` — Phase 3 (completed)
 - `2026-03-29-his-phase4-frontend-foundation.md` — Phase 4 (completed)
-- Phase 5+ plans to be written when starting each phase
+- `2026-03-29-his-phase5-admin-spa.md` — Phase 5 (completed)
+
+### Phase 5 — Admin SPA (2026-03-29)
+- 7 tasks, 7+ commits
+- Shared: 8 API modules (70+ API functions), 6 reusable components (DataTable, Pagination, StatusBadge, Loading, Empty, ConfirmDialog)
+- Dashboard: stats cards, ECharts trend/distribution charts, recent tickets
+- Hospital: list with filters + form + detail + summary charts + Excel export
+- Ticket: list with tabs + create dialog + detail with timeline/comments/attachments + state machine transitions
+- Bulletin: list + form + detail + publish workflow
+- Notification: topbar dropdown with real-time unread count + mark read
+- Reports: hospital stats, ticket stats, ticket trend, sales performance (all with ECharts)
+- User management: list + create/edit form + role management
+- Settings: org structure (region/province), ticket config (type/status/transition), field definitions
+- Production build: 1.66MB JS (gzip 521KB, includes ECharts)
+
+- Phase 6 plan to be written when starting
