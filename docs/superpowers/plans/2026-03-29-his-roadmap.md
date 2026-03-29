@@ -9,7 +9,7 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 | 1 | Backend Foundation | Project scaffold, Docker Compose, DB models/migrations, config, auth (JWT), user CRUD, RBAC (Casbin), organization CRUD | ✅ Complete | — |
 | 2 | Core Business Backend | Hospital CRUD (dynamic fields, filtering, export), Ticket system (state machine, comments, attachments), file upload (MinIO) | ✅ Complete | Phase 1 |
 | 3 | Supporting Backend | Bulletin system, notification system (in-app + WeChat push), report aggregation APIs, Asynq worker setup | ✅ Complete | Phase 2 |
-| 4 | Frontend Foundation | Monorepo scaffold (pnpm + Vite), shared package (API client, components, theme system), admin layout (sidebar/topbar/responsive), auth flow | ⏳ Next | Phase 1 |
+| 4 | Frontend Foundation | Monorepo scaffold (pnpm + Vite), shared package (API client, components, theme system), admin layout (sidebar/topbar/responsive), auth flow | ✅ Complete | Phase 1 |
 | 5 | Admin SPA | Dashboard, hospital pages, ticket pages, bulletin pages, report pages, user/role pages, system settings pages | Pending | Phase 3 + 4 |
 | 6 | Portal SPA | Customer portal layout, ticket submit/view/comment, profile page | Pending | Phase 3 + 4 |
 
@@ -45,9 +45,21 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 - Import cycle fix: extracted `internal/queue` package from `internal/worker`
 - 3 new integration tests (bulletin, notification, report)
 
+### Phase 4 — Frontend Foundation (2026-03-29)
+- 6 tasks, 4 commits
+- pnpm monorepo: shared + admin + portal packages
+- React 19 + TypeScript + Vite + Tailwind CSS v4
+- Theme system: dark/light/system with CSS variables, ThemeProvider, ThemeToggle
+- Shared API client: Axios + JWT interceptor + Zustand auth store (persist)
+- Admin layout: responsive sidebar (220px/64px/drawer), topbar, mobile bottom nav
+- React Router with auth guard, login page, 7 placeholder routes
+- All Lucide icons, zero shadows, modern flat design
+- Production build: 362KB JS, 12.7KB CSS
+
 ## Plan Files
 
 - `2026-03-29-his-phase1-backend-foundation.md` — Phase 1 (completed)
 - `2026-03-29-his-phase2-core-business.md` — Phase 2 (completed)
 - `2026-03-29-his-phase3-supporting-backend.md` — Phase 3 (completed)
-- Phase 4+ plans to be written when starting each phase
+- `2026-03-29-his-phase4-frontend-foundation.md` — Phase 4 (completed)
+- Phase 5+ plans to be written when starting each phase
