@@ -1,0 +1,8 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Menu, Bell } from 'lucide-react';
+import { ThemeToggle, useAuthStore } from '@hospital/shared';
+export function Topbar({ onMenuClick }) {
+    const user = useAuthStore((s) => s.user);
+    const logout = useAuthStore((s) => s.logout);
+    return (_jsxs("header", { className: "h-[52px] flex items-center justify-between px-4 border-b border-border bg-card shrink-0", children: [_jsx("div", { className: "flex items-center gap-3", children: _jsx("button", { onClick: onMenuClick, className: "md:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors", "aria-label": "\u6253\u5F00\u83DC\u5355", children: _jsx(Menu, { size: 20, strokeWidth: 1.5 }) }) }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("button", { className: "relative p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors", children: [_jsx(Bell, { size: 20, strokeWidth: 1.5 }), _jsx("span", { className: "absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" })] }), _jsx(ThemeToggle, {}), _jsxs("button", { onClick: () => logout(), className: "flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors", title: "\u9000\u51FA\u767B\u5F55", children: [_jsx("div", { className: "w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center text-accent text-xs font-medium", children: (user?.real_name || user?.username || 'A').charAt(0) }), _jsx("span", { className: "hidden sm:inline max-w-[100px] truncate", children: user?.real_name || user?.username || '管理员' })] })] })] }));
+}
