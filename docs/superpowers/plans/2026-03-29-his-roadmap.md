@@ -86,9 +86,28 @@ This project is broken into 6 phases. Each phase produces working, testable soft
 - Shared portal API module added to @hospital/shared
 - Portal build: 357KB JS (gzip 115KB)
 
+## Post-v1.0 Remaining Work
+
+### High Priority
+1. **Portal Backend API** — `handler/portal/` 未实现，前端 Portal 的 `/api/portal/v1/*` 接口不存在
+2. **Enterprise WeChat SSO** — `pkg/wechat/` 未创建，OAuth 流程需要企微应用凭证
+3. **Enterprise WeChat Push** — Worker 中是 stub，需对接企微应用消息 API
+
+### Medium Priority
+4. Swagger API 文档（Swaggo）
+5. 数据库版本化迁移（golang-migrate 替代 AutoMigrate）
+6. 报表导出完善（Excel 接通 + PDF 导出）
+7. React Hook Form + Zod 表单验证
+
+### Low Priority
+8. shadcn/ui 组件替换（a11y 改进）
+9. 密码修改功能
+10. 前端测试（Vitest + Playwright）
+11. 生产部署优化（ECharts code splitting, Nginx, HTTPS）
+
 ## Final Stats
-- **Total commits:** 54
-- **Backend:** 71 Go files, ~6500 lines
+- **Total commits:** 55
+- **Backend:** 71 Go files
 - **Frontend:** 71 TS/TSX files across 3 packages
 - **Tests:** 15 integration + 4 unit, all passing
 - **All 6 phases complete**

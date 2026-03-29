@@ -4,3 +4,4 @@
 - [API Reference](api_reference.md) — 已实现的 API 端点清单
 - [Data Models](data_models.md) — 数据库实体关系和关键字段说明
 - [Bugs Fixed](bugs_fixed.md) — 开发过程中发现并修复的 bug 记录
+- [Remaining Work](remaining_work.md) — v1.0 后待办：Portal后端API、企微SSO/推送、Swagger、迁移脚本等

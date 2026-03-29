@@ -34,6 +34,7 @@ type: project
 
 ## How to apply
 
-- 后续开发从 Phase 3 或 Phase 4 继续
-- Phase 3 和 Phase 4 可以并行（后端和前端独立）
-- Phase 5 依赖 Phase 3 + 4，Phase 6 同理
+- 6 阶段全部完成，进入查漏补缺阶段
+- 高优先级：Portal 后端 API → 企微 SSO → 企微消息推送
+- 中优先级：Swagger 文档、数据库迁移脚本、报表导出、表单验证
+- 详见 remaining_work.md
