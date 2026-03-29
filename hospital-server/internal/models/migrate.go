@@ -11,5 +11,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&Hospital{}, &HospitalCategory{}, &FieldDefinition{}, &HospitalField{},
 		&TicketType{}, &TicketStatus{}, &TicketTransition{},
 		&Ticket{}, &TicketComment{}, &TicketAttachment{}, &TicketLog{},
+		&Bulletin{},
+		&Notification{},
 	)
 }

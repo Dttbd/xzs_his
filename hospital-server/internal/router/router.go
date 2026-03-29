@@ -18,6 +18,8 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	roleRepo := repository.NewRoleRepo(db)
 	hospitalRepo := repository.NewHospitalRepo(db)
 	ticketRepo := repository.NewTicketRepo(db)
+	bulletinRepo := repository.NewBulletinRepo(db)
+	notificationRepo := repository.NewNotificationRepo(db)
 
 	// Services
 	authSvc := service.NewAuthService(db, jwtSecret, jwtExpireH)
@@ -26,6 +28,8 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	roleSvc := service.NewRoleService(roleRepo, enforcer)
 	hospitalSvc := service.NewHospitalService(hospitalRepo)
 	ticketSvc := service.NewTicketService(ticketRepo)
+	bulletinSvc := service.NewBulletinService(bulletinRepo)
+	notificationSvc := service.NewNotificationService(notificationRepo)
 
 	// Handlers
 	authH := admin.NewAuthHandler(authSvc)
@@ -35,6 +39,8 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	hospitalH := admin.NewHospitalHandler(hospitalSvc)
 	ticketH := admin.NewTicketHandler(ticketSvc)
 	ticketConfigH := admin.NewTicketConfigHandler(ticketSvc)
+	bulletinH := admin.NewBulletinHandler(bulletinSvc)
+	notificationH := admin.NewNotificationHandler(notificationSvc)
 
 	// Global middleware
 	r.Use(middleware.CORS())
@@ -141,6 +147,20 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 		adminV1.GET("/ticket-transitions/:id", ticketConfigH.GetTransition)
 		adminV1.PUT("/ticket-transitions/:id", ticketConfigH.UpdateTransition)
 		adminV1.DELETE("/ticket-transitions/:id", ticketConfigH.DeleteTransition)
+
+		// Bulletins
+		adminV1.GET("/bulletins", bulletinH.List)
+		adminV1.POST("/bulletins", bulletinH.Create)
+		adminV1.GET("/bulletins/:id", bulletinH.Get)
+		adminV1.PUT("/bulletins/:id", bulletinH.Update)
+		adminV1.DELETE("/bulletins/:id", bulletinH.Delete)
+		adminV1.PUT("/bulletins/:id/publish", bulletinH.Publish)
+
+		// Notifications (current user)
+		adminV1.GET("/notifications", notificationH.List)
+		adminV1.GET("/notifications/unread-count", notificationH.UnreadCount)
+		adminV1.PUT("/notifications/read-all", notificationH.MarkAllRead)
+		adminV1.PUT("/notifications/:id/read", notificationH.MarkRead)
 	}
 
 	// Common file endpoints (no admin auth group required for GetFile)
