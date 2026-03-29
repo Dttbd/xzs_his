@@ -3,6 +3,9 @@ import { AdminLayout } from '../layouts/admin-layout'
 import { AuthGuard } from './auth-guard'
 import { LoginPage } from '../pages/login'
 import { DashboardPage } from '../pages/dashboard'
+import { HospitalListPage } from '../pages/hospital'
+import { HospitalDetailPage } from '../pages/hospital/hospital-detail'
+import { HospitalSummaryPage } from '../pages/hospital/hospital-summary'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -26,7 +29,9 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'hospitals', element: <PlaceholderPage title="医院管理" /> },
+      { path: 'hospitals', element: <HospitalListPage /> },
+      { path: 'hospitals/summary', element: <HospitalSummaryPage /> },
+      { path: 'hospitals/:id', element: <HospitalDetailPage /> },
       { path: 'tickets', element: <PlaceholderPage title="工单中心" /> },
       { path: 'bulletins', element: <PlaceholderPage title="公告管理" /> },
       { path: 'reports', element: <PlaceholderPage title="报表中心" /> },
