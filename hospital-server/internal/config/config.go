@@ -15,7 +15,7 @@ type Config struct {
 	Database DatabaseConfig
 	Redis    RedisConfig
 	JWT      JWTConfig
-	MinIO    *MinIOConfig // nil if MINIO_URL not set
+	MinIO    MinIOConfig
 }
 
 type ServerConfig struct {
@@ -84,8 +84,8 @@ var envVars = []envVar{
 	{Key: "JWT_SECRET", Required: true, Desc: "signing key for JWT tokens"},
 
 	// Optional
-	{Key: "REDIS_URL", Default: "redis://@localhost:6379/0", Desc: "redis://:pass@host:6379/0"},
-	{Key: "MINIO_URL", Desc: "minio://key:secret@host:9000/bucket (not set = file upload disabled)"},
+	{Key: "REDIS_URL", Required: true, Desc: "redis://:pass@host:6379/0"},
+	{Key: "MINIO_URL", Required: true, Desc: "minio://key:secret@host:9000/bucket"},
 	{Key: "PORT", Default: "8080", Desc: "server port"},
 	{Key: "SERVER_MODE", Default: "debug", Desc: "debug / release / test"},
 	{Key: "JWT_EXPIRE_HOUR", Default: "24", Desc: "token expiry in hours"},
@@ -111,11 +111,11 @@ func Load() (*Config, error) {
 	// Read values
 	databaseURL := os.Getenv("DATABASE_URL")
 	jwtSecret := os.Getenv("JWT_SECRET")
+	redisURL := os.Getenv("REDIS_URL")
+	minioURL := os.Getenv("MINIO_URL")
 	port := envInt("PORT", 8080)
 	mode := envStr("SERVER_MODE", "debug")
 	expireHour := envInt("JWT_EXPIRE_HOUR", 24)
-	redisURL := envStr("REDIS_URL", "redis://@localhost:6379/0")
-	minioURL := os.Getenv("MINIO_URL")
 
 	// --- Parse ---
 	dbCfg, err := parseDatabaseURL(databaseURL)
@@ -128,13 +128,9 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid REDIS_URL: %w", err)
 	}
 
-	var minioCfg *MinIOConfig
-	if minioURL != "" {
-		mc, err := parseMinIOURL(minioURL)
-		if err != nil {
-			return nil, fmt.Errorf("invalid MINIO_URL: %w", err)
-		}
-		minioCfg = mc
+	minioCfg, err := parseMinIOURL(minioURL)
+	if err != nil {
+		return nil, fmt.Errorf("invalid MINIO_URL: %w", err)
 	}
 
 	return &Config{
@@ -142,7 +138,7 @@ func Load() (*Config, error) {
 		Database: *dbCfg,
 		Redis:    *redisCfg,
 		JWT:      JWTConfig{Secret: jwtSecret, ExpireHour: expireHour},
-		MinIO:    minioCfg,
+		MinIO:    *minioCfg,
 	}, nil
 }
 

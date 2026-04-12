@@ -54,23 +54,18 @@ func main() {
 	}
 	log.Println("casbin enforcer initialized")
 
-	// MinIO (optional - only init if MINIO_URL is set)
-	var store *storage.Storage
-	if cfg.MinIO != nil {
-		store, err = storage.NewStorage(
-			cfg.MinIO.Endpoint,
-			cfg.MinIO.AccessKey,
-			cfg.MinIO.SecretKey,
-			cfg.MinIO.Bucket,
-			cfg.MinIO.UseSSL,
-		)
-		if err != nil {
-			log.Printf("WARNING: MinIO not available: %v (file upload disabled)", err)
-			store = nil
-		}
-	} else {
-		log.Println("MINIO_URL not set, file upload disabled")
+	// MinIO
+	store, err := storage.NewStorage(
+		cfg.MinIO.Endpoint,
+		cfg.MinIO.AccessKey,
+		cfg.MinIO.SecretKey,
+		cfg.MinIO.Bucket,
+		cfg.MinIO.UseSSL,
+	)
+	if err != nil {
+		log.Fatalf("failed to connect MinIO: %v", err)
 	}
+	log.Println("MinIO connected")
 
 	// Asynq client (for async tasks)
 	asynqClient := queue.NewClient(cfg.Redis.Addr(), cfg.Redis.Password, cfg.Redis.DB)
