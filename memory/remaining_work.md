@@ -28,19 +28,17 @@ Worker 中 `HandleSendWechatMsg` 是 stub（只打日志）。需要：
 
 ## 中优先级
 
-### 4. Swagger API 文档
-设计中指定 Swaggo 自动生成 → 前端 TS 类型。未集成。
-- 安装 `swaggo/swag`，给 handler 加注释，生成 `/docs/swagger.json`
+### ~~4. Swagger API 文档~~ ✅ 已完成
+Swaggo 集成，Swagger UI 在 /swagger/index.html，主要 handler 已添加注释。
 
-### 5. 数据库版本化迁移
-目前用 GORM AutoMigrate（仅增量加列，不支持删列/改列）。生产环境应使用 `golang-migrate` 管理迁移脚本。
+### ~~5. 数据库版本化迁移~~ ✅ 已完成
+golang-migrate 集成，初始 schema 迁移脚本。`--migrate` 标志切换模式。
 
-### 6. 报表导出完善
-- Excel 导出框架已有，报表页面的导出按钮需要接通
-- PDF 导出未实现（计划用 excelize 或 wkhtmltopdf）
+### ~~6. 报表导出~~ ✅ 已完成
+医院统计页 + 医院列表页的 Excel 导出按钮已接通。PDF 导出归为低优先级。
 
-### 7. React Hook Form + Zod 表单验证
-设计中指定但未集成。当前用原生 state 管理表单。影响：表单校验不够严格，复杂表单维护成本高。
+### ~~7. React Hook Form + Zod~~ ✅ 已完成
+登录(admin+portal)、医院新建/编辑、工单创建表单已用 RHF+Zod 重构。
 
 ## 低优先级
 
