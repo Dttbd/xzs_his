@@ -23,6 +23,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
+	"github.com/dttbd/hospital-server/pkg/database"
 	"github.com/dttbd/hospital-server/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -32,6 +33,7 @@ import (
 
 func main() {
 	configPath := flag.String("config", "configs/config.yaml", "config file path")
+	useMigrate := flag.Bool("migrate", false, "use golang-migrate instead of GORM AutoMigrate")
 	flag.Parse()
 
 	cfg, err := config.Load(*configPath)
@@ -47,8 +49,14 @@ func main() {
 	}
 	log.Println("database connected")
 
-	if err := models.AutoMigrate(db); err != nil {
-		log.Fatalf("failed to run migrations: %v", err)
+	if *useMigrate {
+		if err := database.RunMigrations(cfg.Database.PostgresURL(), cfg.Database.MigrationsPath); err != nil {
+			log.Fatalf("failed to run migrations: %v", err)
+		}
+	} else {
+		if err := models.AutoMigrate(db); err != nil {
+			log.Fatalf("failed to auto-migrate: %v", err)
+		}
 	}
 	log.Println("database migrated")
 

@@ -9,6 +9,7 @@ database:
   password: hospital123
   dbname: hospital_db
   sslmode: disable
+  migrations_path: migrations
 
 redis:
   host: localhost
