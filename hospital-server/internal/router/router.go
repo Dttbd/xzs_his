@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/casbin/casbin/v3"
 	"github.com/dttbd/hospital-server/internal/handler/admin"
+	"github.com/dttbd/hospital-server/internal/handler/portal"
 	"github.com/dttbd/hospital-server/internal/middleware"
 	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/repository"
@@ -172,6 +173,35 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 		adminV1.GET("/reports/ticket-stats", reportH.TicketStats)
 		adminV1.GET("/reports/ticket-trend", reportH.TicketTrend)
 		adminV1.GET("/reports/sales-stats", reportH.SalesStats)
+	}
+
+	// Portal handlers
+	portalAuthH := portal.NewAuthHandler(authSvc)
+	portalTicketH := portal.NewTicketHandler(ticketSvc)
+	portalProfileH := portal.NewProfileHandler(userRepo)
+
+	// Portal auth (no auth required)
+	portalAuthGroup := r.Group("/api/portal/auth")
+	{
+		portalAuthGroup.POST("/login", portalAuthH.Login)
+	}
+
+	// Portal API (auth required)
+	portalV1 := r.Group("/api/portal/v1")
+	portalV1.Use(middleware.JWTAuth(jwtSecret))
+	{
+		portalV1.POST("/auth/refresh", portalAuthH.Refresh)
+
+		// Tickets
+		portalV1.GET("/tickets", portalTicketH.ListTickets)
+		portalV1.POST("/tickets", portalTicketH.CreateTicket)
+		portalV1.GET("/tickets/:id", portalTicketH.GetTicket)
+		portalV1.POST("/tickets/:id/comments", portalTicketH.AddComment)
+		portalV1.POST("/tickets/:id/attachments", portalTicketH.AddAttachment)
+
+		// Profile
+		portalV1.GET("/profile", portalProfileH.GetProfile)
+		portalV1.PUT("/profile", portalProfileH.UpdateProfile)
 	}
 
 	// Common file endpoints (no admin auth group required for GetFile)
