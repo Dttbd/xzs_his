@@ -42,8 +42,8 @@ golang-migrate 集成，初始 schema 迁移脚本。`--migrate` 标志切换模
 
 ## 低优先级
 
-### ~~8. shadcn/ui 组件替换~~ → 保留为 TODO
-当前手写 Tailwind 组件功能等价。后续按需逐步替换。
+### ~~8. shadcn/ui 组件替换~~ ✅ 已完成
+全部 UI 组件统一为 shadcn/ui（Button/Input/Dialog/Select/Badge/Card/Tabs/DropdownMenu 等），40+ 文件重构完成。
 
 ### ~~9. 密码修改~~ ✅ 已完成
 后端 API + 管理端顶栏下拉菜单中的修改密码对话框。Portal 也支持。
