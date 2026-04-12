@@ -143,6 +143,32 @@ func seedDefaults(db *gorm.DB, enforcer *casbin.Enforcer) error {
 		return fmt.Errorf("failed to query admin user: %w", err)
 	}
 
+	// Create test customer user if not exists
+	var testCustomer models.User
+	err = db.Where("username = ?", "customer01").First(&testCustomer).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		hashedPwd, err := service.HashPassword("customer123")
+		if err != nil {
+			return fmt.Errorf("failed to hash customer password: %w", err)
+		}
+		testCustomer = models.User{
+			Username:     "customer01",
+			PasswordHash: hashedPwd,
+			RealName:     "测试客户",
+			Phone:        "13800000001",
+			Email:        "customer@example.com",
+			Status:       1,
+		}
+		if err := db.Create(&testCustomer).Error; err != nil {
+			return fmt.Errorf("failed to create test customer: %w", err)
+		}
+		var customerRole models.Role
+		if err := db.Where("code = ?", "customer").First(&customerRole).Error; err == nil {
+			db.Model(&testCustomer).Association("Roles").Replace([]models.Role{customerRole})
+		}
+		log.Println("created test customer user (customer01 / customer123)")
+	}
+
 	// Setup default Casbin policies
 	if err := casbinpkg.SetupDefaultPolicies(enforcer); err != nil {
 		return fmt.Errorf("failed to setup default casbin policies: %w", err)
@@ -248,6 +274,7 @@ func seedTicketDefaults(db *gorm.DB) error {
 				FromStatusID: fromStatus.ID,
 				ToStatusID:   toStatus.ID,
 				Name:         t.Name,
+				AllowedRoles: "[]",
 			}
 			if err := db.Create(&transition).Error; err != nil {
 				return fmt.Errorf("failed to create transition %s->%s: %w", t.From, t.To, err)
