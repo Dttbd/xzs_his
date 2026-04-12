@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 )
 
@@ -71,6 +72,9 @@ func (r *RedisConfig) Addr() string {
 }
 
 func Load(path string) (*Config, error) {
+	// Auto-load .env file if present (silently skip if not found)
+	_ = godotenv.Load()
+
 	viper.SetConfigFile(path)
 	viper.AutomaticEnv()
 
