@@ -34,7 +34,7 @@ export {
 // API — Users & Roles
 export type { Role } from './api'
 export {
-  listUsers, getUser, createUser, updateUser, deleteUser, setUserRoles,
+  listUsers, getUser, createUser, updateUser, deleteUser, setUserRoles, changePassword,
   listRoles, createRole, updateRole, deleteRole,
 } from './api'
 

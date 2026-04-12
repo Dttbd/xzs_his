@@ -45,6 +45,12 @@ export async function setUserRoles(id: string, roleIds: string[]) {
   return data
 }
 
+export async function changePassword(body: { old_password: string; new_password: string }) {
+  const { data } = await apiClient.put<ApiResponse<null>>('/api/admin/v1/users/change-password', body)
+  if (data.code !== 0) throw new Error(data.message)
+  return data
+}
+
 // --- Role CRUD ---
 
 export async function listRoles(params?: Record<string, any>) {

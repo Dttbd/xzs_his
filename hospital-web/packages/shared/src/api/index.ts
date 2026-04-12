@@ -30,7 +30,7 @@ export {
 // Users & Roles
 export type { Role } from './users'
 export {
-  listUsers, getUser, createUser, updateUser, deleteUser, setUserRoles,
+  listUsers, getUser, createUser, updateUser, deleteUser, setUserRoles, changePassword,
   listRoles, createRole, updateRole, deleteRole,
 } from './users'
 

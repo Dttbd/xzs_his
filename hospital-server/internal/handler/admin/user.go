@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/dttbd/hospital-server/internal/dto"
+	"github.com/dttbd/hospital-server/internal/middleware"
 	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -144,6 +145,29 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.OKMsg("deleted"))
+}
+
+// ChangePassword godoc
+// @Summary      修改密码
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.ChangePasswordReq  true  "密码信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/admin/v1/users/change-password [put]
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	userID := c.MustGet(middleware.CtxUserID).(uuid.UUID)
+	var req dto.ChangePasswordReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Fail(400, err.Error()))
+		return
+	}
+	if err := h.svc.ChangePassword(userID, &req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Fail(400, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, dto.OKMsg("密码修改成功"))
 }
 
 // SetRoles godoc

@@ -6,6 +6,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/middleware"
 	"github.com/dttbd/hospital-server/internal/repository"
+	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -19,10 +20,11 @@ type UpdateProfileReq struct {
 
 type ProfileHandler struct {
 	userRepo *repository.UserRepo
+	userSvc  *service.UserService
 }
 
 func NewProfileHandler(userRepo *repository.UserRepo) *ProfileHandler {
-	return &ProfileHandler{userRepo: userRepo}
+	return &ProfileHandler{userRepo: userRepo, userSvc: service.NewUserService(userRepo)}
 }
 
 // GetProfile godoc
@@ -98,4 +100,33 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.OK(user))
+}
+
+// ChangePassword godoc
+// @Summary      修改密码
+// @Tags         portal-profile
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.ChangePasswordReq  true  "密码信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/portal/v1/change-password [put]
+func (h *ProfileHandler) ChangePassword(c *gin.Context) {
+	userID, ok := c.Get(middleware.CtxUserID)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, dto.Fail(401, "invalid user context"))
+		return
+	}
+	uid := userID.(uuid.UUID)
+
+	var req dto.ChangePasswordReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Fail(400, err.Error()))
+		return
+	}
+	if err := h.userSvc.ChangePassword(uid, &req); err != nil {
+		c.JSON(http.StatusBadRequest, dto.Fail(400, err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, dto.OKMsg("密码修改成功"))
 }

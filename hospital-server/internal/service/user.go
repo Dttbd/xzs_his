@@ -7,6 +7,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -113,4 +114,22 @@ func (s *UserService) SetRoles(userID uuid.UUID, req *dto.SetUserRolesReq) error
 		return err
 	}
 	return s.repo.SetRoles(userID, roles)
+}
+
+func (s *UserService) ChangePassword(userID uuid.UUID, req *dto.ChangePasswordReq) error {
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	// Verify old password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+		return errors.New("旧密码不正确")
+	}
+	// Hash new password
+	hash, err := HashPassword(req.NewPassword)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = hash
+	return s.repo.Update(user)
 }

@@ -78,6 +78,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 		adminV1.POST("/auth/refresh", authH.Refresh)
 
 		// Users
+		adminV1.PUT("/users/change-password", userH.ChangePassword)
 		adminV1.GET("/users", userH.List)
 		adminV1.POST("/users", userH.Create)
 		adminV1.GET("/users/:id", userH.Get)
@@ -209,6 +210,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 		// Profile
 		portalV1.GET("/profile", portalProfileH.GetProfile)
 		portalV1.PUT("/profile", portalProfileH.UpdateProfile)
+		portalV1.PUT("/change-password", portalProfileH.ChangePassword)
 	}
 
 	// Common file endpoints (no admin auth group required for GetFile)
