@@ -12,7 +12,7 @@ const tabs: { key: TabKey; label: string; icon: React.ElementType }[] = [
   { key: 'sales', label: '销售业绩', icon: Users },
 ]
 
-export function ReportPage() {
+export default function ReportPage() {
   const [active, setActive] = useState<TabKey>('hospital')
 
   return (

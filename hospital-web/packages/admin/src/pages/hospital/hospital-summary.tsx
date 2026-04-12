@@ -31,7 +31,7 @@ const GROUP_OPTIONS: { value: GroupBy; label: string }[] = [
   { value: 'specialty', label: '按专科' },
 ]
 
-export function HospitalSummaryPage() {
+export default function HospitalSummaryPage() {
   const [groupBy, setGroupBy] = useState<GroupBy>('province')
 
   const { data, isLoading } = useQuery({

@@ -12,7 +12,7 @@ function getGreeting() {
   return '晚上好'
 }
 
-export function DashboardPage() {
+export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const { data: overview, isLoading } = useQuery({
     queryKey: ['overview'],
