@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   listFieldDefinitions,
@@ -9,8 +9,22 @@ import {
   Loading,
   Empty,
   type FieldDefinition,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
-import { Plus, X, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 const FIELD_TYPES = [
   { value: 'text', label: '文本' },
@@ -18,12 +32,6 @@ const FIELD_TYPES = [
   { value: 'select', label: '下拉选择' },
   { value: 'date', label: '日期' },
 ]
-
-const inputClass =
-  'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-const selectClass =
-  'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-const labelClass = 'block text-sm font-medium text-foreground mb-1'
 
 function Toggle({
   checked,
@@ -57,7 +65,6 @@ interface FieldFormProps {
 
 function FieldForm({ open, onClose, field }: FieldFormProps) {
   const queryClient = useQueryClient()
-  const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!field
 
   const [fieldKey, setFieldKey] = useState('')
@@ -79,15 +86,6 @@ function FieldForm({ open, onClose, field }: FieldFormProps) {
       setErrors({})
     }
   }, [open, field])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
 
   const mutation = useMutation({
     mutationFn: (payload: Partial<FieldDefinition>) =>
@@ -127,34 +125,21 @@ function FieldForm({ open, onClose, field }: FieldFormProps) {
     })
   }
 
-  if (!open) return null
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-semibold text-foreground">
-            {isEdit ? '编辑字段' : '新建字段'}
-          </h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-background transition-colors">
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? '编辑字段' : '新建字段'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div>
-              <label className={labelClass}>
+              <Label>
                 字段键 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={fieldKey}
                 onChange={(e) => setFieldKey(e.target.value)}
                 placeholder="如: contract_no"
@@ -166,11 +151,11 @@ function FieldForm({ open, onClose, field }: FieldFormProps) {
             </div>
 
             <div>
-              <label className={labelClass}>
+              <Label>
                 字段名称 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={fieldName}
                 onChange={(e) => setFieldName(e.target.value)}
                 placeholder="如: 合同编号"
@@ -181,28 +166,29 @@ function FieldForm({ open, onClose, field }: FieldFormProps) {
             </div>
 
             <div>
-              <label className={labelClass}>字段类型</label>
-              <select
-                className={selectClass}
-                value={fieldType}
-                onChange={(e) => setFieldType(e.target.value)}
-              >
-                {FIELD_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
+              <Label>字段类型</Label>
+              <Select value={fieldType} onValueChange={setFieldType}>
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FIELD_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {(fieldType === 'select' || options) && (
               <div>
-                <label className={labelClass}>
+                <Label>
                   选项 (JSON)
                   {fieldType === 'select' && <span className="text-destructive"> *</span>}
-                </label>
-                <textarea
-                  className={`${inputClass} resize-none font-mono text-xs`}
+                </Label>
+                <Textarea
+                  className="mt-1 resize-none font-mono text-xs"
                   rows={3}
                   value={options}
                   onChange={(e) => setOptions(e.target.value)}
@@ -216,35 +202,27 @@ function FieldForm({ open, onClose, field }: FieldFormProps) {
 
             <div className="flex gap-6">
               <div className="flex items-center gap-2">
-                <label className="text-sm text-foreground">必填</label>
+                <Label>必填</Label>
                 <Toggle checked={isRequired} onChange={setIsRequired} />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-foreground">可筛选</label>
+                <Label>可筛选</Label>
                 <Toggle checked={isFilterable} onChange={setIsFilterable} />
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-background transition-colors"
-            >
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               取消
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm hover:bg-accent/90 disabled:opacity-50 transition-colors"
-            >
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -275,16 +253,15 @@ export function FieldConfig() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">配置医院档案的自定义扩展字段</p>
-        <button
+        <Button
           onClick={() => {
             setEditField(undefined)
             setFormOpen(true)
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground px-3 py-1.5 text-sm hover:bg-accent/90 transition-colors"
         >
           <Plus className="h-4 w-4" strokeWidth={1.5} />
           新增字段
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (

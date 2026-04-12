@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Menu, X, LogOut } from 'lucide-react'
-import { ThemeToggle, useAuthStore } from '@hospital/shared'
+import { ThemeToggle, useAuthStore, Button } from '@hospital/shared'
 
 export function PortalTopbar() {
   const user = useAuthStore((s) => s.user)
@@ -43,22 +43,26 @@ export function PortalTopbar() {
         </span>
 
         {/* Logout button */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => logout()}
-          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors"
+          className="p-1.5 text-muted-foreground hover:text-foreground"
           title="退出登录"
         >
           <LogOut size={18} strokeWidth={1.5} />
-        </button>
+        </Button>
 
         {/* Mobile hamburger */}
-        <button
-          className="sm:hidden p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="sm:hidden p-1.5 text-muted-foreground hover:text-foreground"
           onClick={() => setMenuOpen((v) => !v)}
           aria-label="菜单"
         >
           {menuOpen ? <X size={20} strokeWidth={1.5} /> : <Menu size={20} strokeWidth={1.5} />}
-        </button>
+        </Button>
       </div>
 
       {/* Mobile nav dropdown */}

@@ -1,7 +1,23 @@
 import { useState } from 'react'
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query'
-import { createPortalTicket, listTicketTypes } from '@hospital/shared'
-import { X } from 'lucide-react'
+import {
+  createPortalTicket,
+  listTicketTypes,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@hospital/shared'
 
 interface TicketCreateDialogProps {
   open: boolean
@@ -52,75 +68,55 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
     mutation.mutate()
   }
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={handleClose}
-      />
-
-      {/* Dialog */}
-      <div className="relative w-full max-w-md bg-card border border-border rounded-xl p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">提交工单</h2>
-          <button
-            onClick={handleClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>提交工单</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm text-foreground mb-1.5">
+            <Label>
               标题 <span className="text-destructive">*</span>
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="请简述您的问题"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground
-                placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors"
+              className="mt-1.5"
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-sm text-foreground mb-1.5">
+            <Label>
               工单类型 <span className="text-destructive">*</span>
-            </label>
-            <select
-              value={typeId}
-              onChange={(e) => setTypeId(e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground
-                outline-none focus:border-accent transition-colors appearance-none"
-            >
-              <option value="">请选择类型</option>
-              {types.filter((t) => t.is_active).map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
+            </Label>
+            <Select value={typeId || '__none__'} onValueChange={(v) => setTypeId(v === '__none__' ? '' : v)}>
+              <SelectTrigger className="mt-1.5 w-full">
+                <SelectValue placeholder="请选择类型" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">请选择类型</SelectItem>
+                {types.filter((t) => t.is_active).map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm text-foreground mb-1.5">
-              详细描述
-            </label>
-            <textarea
+            <Label>详细描述</Label>
+            <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="请详细描述您的问题，以便我们更快处理"
               rows={5}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground
-                placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors resize-none"
+              className="mt-1.5 resize-none"
             />
           </div>
 
@@ -128,27 +124,20 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
             <p className="text-destructive text-sm">{error}</p>
           )}
 
-          {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 py-2 border border-border rounded-lg text-sm text-muted-foreground
-                hover:text-foreground hover:border-foreground/30 transition-colors"
-            >
+          <DialogFooter className="pt-1">
+            <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
               取消
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={mutation.isPending}
-              className="flex-1 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium
-                hover:opacity-90 disabled:opacity-50 transition-opacity"
+              className="flex-1"
             >
               {mutation.isPending ? '提交中...' : '提交工单'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
