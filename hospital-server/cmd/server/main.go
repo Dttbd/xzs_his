@@ -87,14 +87,14 @@ func main() {
 func seedDefaults(db *gorm.DB, enforcer *casbin.Enforcer) error {
 	// Default roles to create
 	defaultRoles := []models.Role{
-		{Code: "admin", Name: "Administrator", IsSystem: true, Status: 1},
-		{Code: "region_manager", Name: "Region Manager", IsSystem: false, Status: 1},
-		{Code: "province_manager", Name: "Province Manager", IsSystem: false, Status: 1},
-		{Code: "sales", Name: "Sales", IsSystem: false, Status: 1},
-		{Code: "presales", Name: "Pre-Sales", IsSystem: false, Status: 1},
-		{Code: "aftersales", Name: "After-Sales", IsSystem: false, Status: 1},
-		{Code: "support", Name: "Support", IsSystem: false, Status: 1},
-		{Code: "customer", Name: "Customer", IsSystem: false, Status: 1},
+		{Code: "admin", Name: "系统管理员", IsSystem: true, Status: 1},
+		{Code: "region_manager", Name: "大区负责人", IsSystem: false, Status: 1},
+		{Code: "province_manager", Name: "省负责人", IsSystem: false, Status: 1},
+		{Code: "sales", Name: "销售", IsSystem: false, Status: 1},
+		{Code: "presales", Name: "售前", IsSystem: false, Status: 1},
+		{Code: "aftersales", Name: "售后", IsSystem: false, Status: 1},
+		{Code: "support", Name: "支持人员", IsSystem: false, Status: 1},
+		{Code: "customer", Name: "客户", IsSystem: false, Status: 1},
 	}
 
 	for _, role := range defaultRoles {
@@ -122,7 +122,7 @@ func seedDefaults(db *gorm.DB, enforcer *casbin.Enforcer) error {
 		adminUser = models.User{
 			Username:     "admin",
 			PasswordHash: hashedPwd,
-			RealName:     "Administrator",
+			RealName:     "系统管理员",
 			Status:       1,
 		}
 		if err := db.Create(&adminUser).Error; err != nil {
