@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 
 	"github.com/dttbd/hospital-server/internal/config"
@@ -17,10 +15,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "configs/config.yaml", "config file path")
-	flag.Parse()
-
-	cfg, err := config.Load(*configPath)
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
@@ -41,9 +36,8 @@ func main() {
 	notifSvc := service.NewNotificationService(notifRepo)
 
 	// Asynq server
-	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: redisAddr, Password: cfg.Redis.Password, DB: cfg.Redis.DB},
+		asynq.RedisClientOpt{Addr: cfg.Redis.Addr(), Password: cfg.Redis.Password, DB: cfg.Redis.DB},
 		asynq.Config{Concurrency: 10},
 	)
 

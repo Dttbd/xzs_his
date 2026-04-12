@@ -12,7 +12,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"log"
 
@@ -23,7 +22,6 @@ import (
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
-	"github.com/dttbd/hospital-server/pkg/database"
 	"github.com/dttbd/hospital-server/pkg/storage"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
@@ -32,11 +30,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "configs/config.yaml", "config file path")
-	useMigrate := flag.Bool("migrate", false, "use golang-migrate instead of GORM AutoMigrate")
-	flag.Parse()
-
-	cfg, err := config.Load(*configPath)
+	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
@@ -49,14 +43,8 @@ func main() {
 	}
 	log.Println("database connected")
 
-	if *useMigrate {
-		if err := database.RunMigrations(cfg.Database.PostgresURL(), cfg.Database.MigrationsPath); err != nil {
-			log.Fatalf("failed to run migrations: %v", err)
-		}
-	} else {
-		if err := models.AutoMigrate(db); err != nil {
-			log.Fatalf("failed to auto-migrate: %v", err)
-		}
+	if err := models.AutoMigrate(db); err != nil {
+		log.Fatalf("failed to auto-migrate: %v", err)
 	}
 	log.Println("database migrated")
 
@@ -66,23 +54,26 @@ func main() {
 	}
 	log.Println("casbin enforcer initialized")
 
-	// MinIO (optional - skip if not available)
+	// MinIO (optional - only init if MINIO_URL is set)
 	var store *storage.Storage
-	store, err = storage.NewStorage(
-		cfg.MinIO.Endpoint,
-		cfg.MinIO.AccessKey,
-		cfg.MinIO.SecretKey,
-		cfg.MinIO.Bucket,
-		cfg.MinIO.UseSSL,
-	)
-	if err != nil {
-		log.Printf("WARNING: MinIO not available: %v (file upload disabled)", err)
-		store = nil
+	if cfg.MinIO != nil {
+		store, err = storage.NewStorage(
+			cfg.MinIO.Endpoint,
+			cfg.MinIO.AccessKey,
+			cfg.MinIO.SecretKey,
+			cfg.MinIO.Bucket,
+			cfg.MinIO.UseSSL,
+		)
+		if err != nil {
+			log.Printf("WARNING: MinIO not available: %v (file upload disabled)", err)
+			store = nil
+		}
+	} else {
+		log.Println("MINIO_URL not set, file upload disabled")
 	}
 
 	// Asynq client (for async tasks)
-	redisAddr := fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port)
-	asynqClient := queue.NewClient(redisAddr, cfg.Redis.Password, cfg.Redis.DB)
+	asynqClient := queue.NewClient(cfg.Redis.Addr(), cfg.Redis.Password, cfg.Redis.DB)
 	defer asynqClient.Close()
 
 	if err := seedDefaults(db, enforcer); err != nil {
