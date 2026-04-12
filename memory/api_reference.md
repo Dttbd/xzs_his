@@ -99,6 +99,13 @@ GET  /reports/ticket-trend      # 工单趋势 (interval=day|week|month)
 GET  /reports/sales-stats       # 销售业绩
 ```
 
-### 待实现 (Phase 4-6)
-- 客户门户 API (/api/portal/v1/*)
-- 前端 SPA (admin + portal)
+### 客户门户 (/api/portal)
+```
+POST /api/portal/auth/login       # 客户登录
+POST /api/portal/v1/auth/refresh  # 刷新 Token
+GET/POST  /api/portal/v1/tickets            # 我的工单列表 / 提交工单
+GET       /api/portal/v1/tickets/:id        # 工单详情（过滤内部留言）
+POST      /api/portal/v1/tickets/:id/comments    # 客户留言
+POST      /api/portal/v1/tickets/:id/attachments # 客户上传附件
+GET/PUT   /api/portal/v1/profile            # 个人信息 查看/编辑
+```

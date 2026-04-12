@@ -6,14 +6,8 @@ type: project
 
 ## 高优先级
 
-### 1. Portal 后端 API
-`handler/portal/` 目录未实现，前端 Portal 调用的 `/api/portal/v1/*` 接口不存在。需要创建：
-- `internal/handler/portal/auth.go` — 客户登录（独立于 admin 登录）
-- `internal/handler/portal/ticket.go` — 工单列表/提交/详情/留言/附件（过滤 is_internal 留言）
-- `internal/handler/portal/profile.go` — 个人信息查看/编辑
-- 在 `router.go` 中注册 `/api/portal/v1/*` 路由组
-
-**Why:** 客户门户前端已就绪但后端 API 不存在，Portal 无法正常工作。
+### ~~1. Portal 后端 API~~ ✅ 已完成
+已创建 `handler/portal/`（auth.go, ticket.go, profile.go），注册了 7 个路由。工单强制所有权校验 + 内部留言过滤。
 
 ### 2. 企业微信 SSO
 `pkg/wechat/` 未创建。需要：
