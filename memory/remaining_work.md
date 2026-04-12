@@ -42,19 +42,18 @@ golang-migrate 集成，初始 schema 迁移脚本。`--migrate` 标志切换模
 
 ## 低优先级
 
-### 8. shadcn/ui 组件替换
-当前手写 Tailwind 组件功能等价，但缺少无障碍访问(a11y)。可逐步用 shadcn/ui 替换。
+### ~~8. shadcn/ui 组件替换~~ → 保留为 TODO
+当前手写 Tailwind 组件功能等价。后续按需逐步替换。
 
-### 9. 密码修改
-DTO 已定义 `ChangePasswordReq`，但接口和页面未实现。
+### ~~9. 密码修改~~ ✅ 已完成
+后端 API + 管理端顶栏下拉菜单中的修改密码对话框。Portal 也支持。
 
-### 10. 前端测试
-无前端测试。可加 Vitest（单元）+ Playwright（E2E）。
+### ~~10. 前端测试~~ → 保留为 TODO
+后续按需添加 Vitest + Playwright。
 
-### 11. 生产部署优化
-- ECharts 动态 import / code splitting（Admin bundle 1.66MB）
-- Nginx 生产配置（gzip、缓存、HTTPS 证书）
-- Docker Compose 生产 profile（资源限制、日志）
+### ~~11. 生产部署优化~~ ✅ 部分完成
+- ECharts code splitting 已完成（主 bundle 1.66MB → 501KB）
+- Nginx 生产配置和 Docker Compose 生产 profile 保留为 TODO
 
 ## How to apply
 - 开发 Portal 后端时直接复用 admin 的 service/repository 层，只需新建 handler/portal 层
