@@ -69,42 +69,48 @@ func (r *RedisConfig) Addr() string {
 	return fmt.Sprintf("%s:%d", r.Host, r.Port)
 }
 
+// envVar defines an environment variable with its metadata.
+type envVar struct {
+	Key      string // env var name
+	Required bool   // if true, startup fails when missing
+	Default  string // default value when not required and not set
+	Desc     string // human-readable description
+}
+
+// All environment variables used by the application, declared in one place.
+var envVars = []envVar{
+	// Required
+	{Key: "DATABASE_URL", Required: true, Desc: "postgres://user:pass@host:5432/dbname?sslmode=disable"},
+	{Key: "JWT_SECRET", Required: true, Desc: "signing key for JWT tokens"},
+
+	// Optional
+	{Key: "REDIS_URL", Default: "redis://@localhost:6379/0", Desc: "redis://:pass@host:6379/0"},
+	{Key: "MINIO_URL", Desc: "minio://key:secret@host:9000/bucket (not set = file upload disabled)"},
+	{Key: "PORT", Default: "8080", Desc: "server port"},
+	{Key: "SERVER_MODE", Default: "debug", Desc: "debug / release / test"},
+	{Key: "JWT_EXPIRE_HOUR", Default: "24", Desc: "token expiry in hours"},
+}
+
 // Load reads environment variables (auto-loads .env if present) and returns Config.
-//
-// Required env vars (startup fails without these):
-//
-//	DATABASE_URL  — postgres://user:pass@host:5432/dbname?sslmode=disable
-//	JWT_SECRET    — signing key for JWT tokens
-//
-// Optional env vars (have sensible defaults):
-//
-//	REDIS_URL     — redis://:pass@host:6379/0           (default: redis://@localhost:6379/0)
-//	MINIO_URL     — minio://key:secret@host:9000/bucket (default: not set, file upload disabled)
-//	PORT          — server port                          (default: 8080)
-//	SERVER_MODE   — debug / release / test               (default: debug)
-//	JWT_EXPIRE_HOUR — token expiry in hours              (default: 24)
 func Load() (*Config, error) {
 	// Auto-load .env if present
 	_ = godotenv.Load()
 
+	// Validate required env vars
 	var missing []string
-
-	// --- Required ---
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		missing = append(missing, "DATABASE_URL")
+	for _, v := range envVars {
+		if v.Required && os.Getenv(v.Key) == "" {
+			missing = append(missing, v.Key)
+		}
 	}
-
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		missing = append(missing, "JWT_SECRET")
-	}
-
 	if len(missing) > 0 {
-		return nil, fmt.Errorf("missing required environment variables: %s", strings.Join(missing, ", "))
+		return nil, fmt.Errorf("missing required environment variables: %s\n\nAll env vars:\n%s",
+			strings.Join(missing, ", "), envVarUsage())
 	}
 
-	// --- Optional ---
+	// Read values
+	databaseURL := os.Getenv("DATABASE_URL")
+	jwtSecret := os.Getenv("JWT_SECRET")
 	port := envInt("PORT", 8080)
 	mode := envStr("SERVER_MODE", "debug")
 	expireHour := envInt("JWT_EXPIRE_HOUR", 24)
@@ -241,6 +247,23 @@ func parseMinIOURL(raw string) (*MinIOConfig, error) {
 	}
 
 	return cfg, nil
+}
+
+// envVarUsage returns a formatted list of all env vars for error messages.
+func envVarUsage() string {
+	var b strings.Builder
+	for _, v := range envVars {
+		req := "optional"
+		if v.Required {
+			req = "REQUIRED"
+		}
+		def := ""
+		if v.Default != "" {
+			def = fmt.Sprintf(" (default: %s)", v.Default)
+		}
+		fmt.Fprintf(&b, "  %-20s [%s]%s  %s\n", v.Key, req, def, v.Desc)
+	}
+	return b.String()
 }
 
 func envStr(key, fallback string) string {
