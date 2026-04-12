@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   listRoles,
@@ -12,8 +12,17 @@ import {
   Empty,
   type Role,
   type Column,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from '@hospital/shared'
-import { Plus, X, ChevronLeft } from 'lucide-react'
+import { Plus, ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface RoleFormProps {
@@ -22,9 +31,10 @@ interface RoleFormProps {
   role?: Role
 }
 
+const errorClass = 'text-xs text-destructive mt-1'
+
 function RoleForm({ open, onClose, role }: RoleFormProps) {
   const queryClient = useQueryClient()
-  const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!role
 
   const [name, setName] = useState('')
@@ -40,15 +50,6 @@ function RoleForm({ open, onClose, role }: RoleFormProps) {
       setErrors({})
     }
   }, [open, role])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
 
   const mutation = useMutation({
     mutationFn: (payload: Partial<Role>) =>
@@ -73,42 +74,21 @@ function RoleForm({ open, onClose, role }: RoleFormProps) {
     mutation.mutate({ name, code, description })
   }
 
-  if (!open) return null
-
-  const inputClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-  const labelClass = 'block text-sm font-medium text-foreground mb-1'
-  const errorClass = 'text-xs text-destructive mt-1'
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">
-            {isEdit ? '编辑角色' : '新建角色'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? '编辑角色' : '新建角色'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div>
-              <label className={labelClass}>
+              <Label>
                 角色名称 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value)
@@ -119,11 +99,11 @@ function RoleForm({ open, onClose, role }: RoleFormProps) {
               {errors.name && <p className={errorClass}>{errors.name}</p>}
             </div>
             <div>
-              <label className={labelClass}>
+              <Label>
                 角色编码 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={code}
                 onChange={(e) => {
                   setCode(e.target.value)
@@ -135,9 +115,9 @@ function RoleForm({ open, onClose, role }: RoleFormProps) {
               {errors.code && <p className={errorClass}>{errors.code}</p>}
             </div>
             <div>
-              <label className={labelClass}>描述</label>
-              <textarea
-                className={`${inputClass} resize-none`}
+              <Label>描述</Label>
+              <Textarea
+                className="mt-1 resize-none"
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -146,25 +126,17 @@ function RoleForm({ open, onClose, role }: RoleFormProps) {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-            >
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               取消
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -217,8 +189,10 @@ export function RoleListPage() {
       title: '操作',
       render: (_: any, record: Role) => (
         <div className="flex gap-2">
-          <button
-            className="text-xs text-accent hover:underline"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 text-xs text-accent hover:text-accent"
             onClick={(e) => {
               e.stopPropagation()
               setEditRole(record)
@@ -226,17 +200,19 @@ export function RoleListPage() {
             }}
           >
             编辑
-          </button>
+          </Button>
           {!record.is_system && (
-            <button
-              className="text-xs text-destructive hover:underline"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto px-0 text-xs text-destructive hover:text-destructive"
               onClick={(e) => {
                 e.stopPropagation()
                 setDeleteTarget(record)
               }}
             >
               删除
-            </button>
+            </Button>
           )}
         </div>
       ),
@@ -247,24 +223,25 @@ export function RoleListPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/users')}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
+            className="p-1.5"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
-          </button>
+          </Button>
           <h1 className="text-xl font-semibold text-foreground">角色管理</h1>
         </div>
-        <button
+        <Button
           onClick={() => {
             setEditRole(undefined)
             setFormOpen(true)
           }}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90"
         >
           <Plus className="h-4 w-4" strokeWidth={1.5} />
           新建角色
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (

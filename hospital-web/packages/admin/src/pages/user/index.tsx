@@ -12,6 +12,7 @@ import {
   Loading,
   Empty,
   type Column,
+  Button,
 } from '@hospital/shared'
 import type { UserInfo, Role } from '@hospital/shared'
 import { Plus, Shield } from 'lucide-react'
@@ -126,33 +127,39 @@ export function UserListPage() {
       title: '操作',
       render: (_: any, record: UserInfo) => (
         <div className="flex gap-2">
-          <button
-            className="text-xs text-accent hover:underline"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 text-xs text-accent hover:text-accent"
             onClick={(e) => {
               e.stopPropagation()
               handleEdit(record)
             }}
           >
             编辑
-          </button>
-          <button
-            className="text-xs text-muted-foreground hover:underline"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 text-xs text-muted-foreground hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation()
               setToggleTarget(record)
             }}
           >
             {record.status === 1 ? '停用' : '启用'}
-          </button>
-          <button
-            className="text-xs text-destructive hover:underline"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 text-xs text-destructive hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation()
               setDeleteTarget(record)
             }}
           >
             删除
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -163,20 +170,14 @@ export function UserListPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-foreground">用户管理</h1>
         <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/users/roles')}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-          >
+          <Button variant="outline" onClick={() => navigate('/users/roles')}>
             <Shield className="h-4 w-4" strokeWidth={1.5} />
             角色管理
-          </button>
-          <button
-            onClick={handleCreate}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90"
-          >
+          </Button>
+          <Button onClick={handleCreate}>
             <Plus className="h-4 w-4" strokeWidth={1.5} />
             新建用户
-          </button>
+          </Button>
         </div>
       </div>
 

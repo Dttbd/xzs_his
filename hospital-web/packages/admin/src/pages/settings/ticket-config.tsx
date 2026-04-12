@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   listTicketTypes,
@@ -21,14 +21,21 @@ import {
   type TicketStatus,
   type TicketTransition,
   type Role,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
-import { Plus, X, ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
-
-const inputClass =
-  'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-const selectClass =
-  'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-const labelClass = 'block text-sm font-medium text-foreground mb-1'
+import { Plus, ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
 // ---- Toggle button ----
 function Toggle({
@@ -52,68 +59,6 @@ function Toggle({
         }`}
       />
     </button>
-  )
-}
-
-// ---- Dialog wrapper ----
-interface DialogProps {
-  open: boolean
-  onClose: () => void
-  title: string
-  children: React.ReactNode
-  onSubmit: (e: React.FormEvent) => void
-  isPending: boolean
-  isEdit: boolean
-}
-
-function FormDialog({ open, onClose, title, children, onSubmit, isPending, isEdit }: DialogProps) {
-  const overlayRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
-
-  if (!open) return null
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">{title}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-background transition-colors">
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
-        <form onSubmit={onSubmit}>
-          <div className="space-y-4">{children}</div>
-          <div className="mt-5 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-background transition-colors"
-            >
-              取消
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm hover:bg-accent/90 disabled:opacity-50 transition-colors"
-            >
-              {isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
   )
 }
 
@@ -175,13 +120,15 @@ function TicketTypesSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">工单类型</h4>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
           onClick={openCreate}
-          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
@@ -233,34 +180,42 @@ function TicketTypesSection() {
         </table>
       )}
 
-      <FormDialog
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        title={editItem ? '编辑工单类型' : '新建工单类型'}
-        onSubmit={(e) => {
-          e.preventDefault()
-          mutation.mutate({ name, code, icon, is_active: isActive })
-        }}
-        isPending={mutation.isPending}
-        isEdit={!!editItem}
-      >
-        <div>
-          <label className={labelClass}>名称 <span className="text-destructive">*</span></label>
-          <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="工单类型名称" required />
-        </div>
-        <div>
-          <label className={labelClass}>编码 <span className="text-destructive">*</span></label>
-          <input className={inputClass} value={code} onChange={(e) => setCode(e.target.value)} placeholder="如: incident, request" required />
-        </div>
-        <div>
-          <label className={labelClass}>图标</label>
-          <input className={inputClass} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="图标名称" />
-        </div>
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-foreground">启用</label>
-          <Toggle checked={isActive} onChange={setIsActive} />
-        </div>
-      </FormDialog>
+      <Dialog open={formOpen} onOpenChange={(v) => { if (!v) setFormOpen(false) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editItem ? '编辑工单类型' : '新建工单类型'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            mutation.mutate({ name, code, icon, is_active: isActive })
+          }}>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label>名称 <span className="text-destructive">*</span></Label>
+                <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="工单类型名称" required />
+              </div>
+              <div>
+                <Label>编码 <span className="text-destructive">*</span></Label>
+                <Input className="mt-1" value={code} onChange={(e) => setCode(e.target.value)} placeholder="如: incident, request" required />
+              </div>
+              <div>
+                <Label>图标</Label>
+                <Input className="mt-1" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="图标名称" />
+              </div>
+              <div className="flex items-center gap-3">
+                <Label>启用</Label>
+                <Toggle checked={isActive} onChange={setIsActive} />
+              </div>
+            </div>
+            <DialogFooter className="mt-5">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>取消</Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? '保存中...' : editItem ? '保存' : '创建'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -330,13 +285,15 @@ function TicketStatusesSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">工单状态</h4>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
           onClick={openCreate}
-          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
@@ -402,53 +359,60 @@ function TicketStatusesSection() {
         </table>
       )}
 
-      <FormDialog
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        title={editItem ? '编辑工单状态' : '新建工单状态'}
-        onSubmit={(e) => {
-          e.preventDefault()
-          mutation.mutate({ name, code, color, is_initial: isInitial, is_terminal: isTerminal })
-        }}
-        isPending={mutation.isPending}
-        isEdit={!!editItem}
-      >
-        <div>
-          <label className={labelClass}>名称 <span className="text-destructive">*</span></label>
-          <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="状态名称" required />
-        </div>
-        <div>
-          <label className={labelClass}>编码 <span className="text-destructive">*</span></label>
-          <input className={inputClass} value={code} onChange={(e) => setCode(e.target.value)} placeholder="如: open, closed" required />
-        </div>
-        <div>
-          <label className={labelClass}>颜色</label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              className="h-9 w-14 rounded cursor-pointer border border-border bg-background"
-            />
-            <input
-              className={inputClass}
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-              placeholder="#6366f1"
-            />
-          </div>
-        </div>
-        <div className="flex gap-6">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-foreground">初始状态</label>
-            <Toggle checked={isInitial} onChange={setIsInitial} />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-foreground">终态</label>
-            <Toggle checked={isTerminal} onChange={setIsTerminal} />
-          </div>
-        </div>
-      </FormDialog>
+      <Dialog open={formOpen} onOpenChange={(v) => { if (!v) setFormOpen(false) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editItem ? '编辑工单状态' : '新建工单状态'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            mutation.mutate({ name, code, color, is_initial: isInitial, is_terminal: isTerminal })
+          }}>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label>名称 <span className="text-destructive">*</span></Label>
+                <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="状态名称" required />
+              </div>
+              <div>
+                <Label>编码 <span className="text-destructive">*</span></Label>
+                <Input className="mt-1" value={code} onChange={(e) => setCode(e.target.value)} placeholder="如: open, closed" required />
+              </div>
+              <div>
+                <Label>颜色</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    className="h-9 w-14 rounded cursor-pointer border border-border bg-background"
+                  />
+                  <Input
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="#6366f1"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-6">
+                <div className="flex items-center gap-2">
+                  <Label>初始状态</Label>
+                  <Toggle checked={isInitial} onChange={setIsInitial} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label>终态</Label>
+                  <Toggle checked={isTerminal} onChange={setIsTerminal} />
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="mt-5">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>取消</Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? '保存中...' : editItem ? '保存' : '创建'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -527,13 +491,15 @@ function TicketTransitionsSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">流转规则</h4>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
           onClick={openCreate}
-          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
-        </button>
+        </Button>
       </div>
 
       {isLoading ? (
@@ -586,71 +552,89 @@ function TicketTransitionsSection() {
         </table>
       )}
 
-      <FormDialog
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        title={editItem ? '编辑流转规则' : '新建流转规则'}
-        onSubmit={(e) => {
-          e.preventDefault()
-          mutation.mutate({
-            name,
-            from_status_id: fromStatusId,
-            to_status_id: toStatusId,
-            allowed_roles: allowedRoles,
-          })
-        }}
-        isPending={mutation.isPending}
-        isEdit={!!editItem}
-      >
-        <div>
-          <label className={labelClass}>规则名称 <span className="text-destructive">*</span></label>
-          <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="如: 关闭工单" required />
-        </div>
-        <div>
-          <label className={labelClass}>来源状态 <span className="text-destructive">*</span></label>
-          <select className={selectClass} value={fromStatusId} onChange={(e) => setFromStatusId(e.target.value)} required>
-            <option value="">请选择来源状态</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>目标状态 <span className="text-destructive">*</span></label>
-          <select className={selectClass} value={toStatusId} onChange={(e) => setToStatusId(e.target.value)} required>
-            <option value="">请选择目标状态</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>允许角色</label>
-          <div className="flex flex-wrap gap-2">
-            {roles.map((role: Role) => {
-              const rolesArr = allowedRoles ? allowedRoles.split(',').map((r) => r.trim()) : []
-              const checked = rolesArr.includes(role.code)
-              return (
-                <label key={role.id} className="inline-flex items-center gap-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="rounded border-border accent-accent"
-                    checked={checked}
-                    onChange={() => {
-                      const next = checked
-                        ? rolesArr.filter((r) => r !== role.code)
-                        : [...rolesArr, role.code]
-                      setAllowedRoles(next.join(','))
-                    }}
-                  />
-                  <span className="text-sm text-foreground">{role.name}</span>
-                </label>
-              )
-            })}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">留空表示所有角色均可操作</p>
-        </div>
-      </FormDialog>
+      <Dialog open={formOpen} onOpenChange={(v) => { if (!v) setFormOpen(false) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editItem ? '编辑流转规则' : '新建流转规则'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            mutation.mutate({
+              name,
+              from_status_id: fromStatusId,
+              to_status_id: toStatusId,
+              allowed_roles: allowedRoles,
+            })
+          }}>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label>规则名称 <span className="text-destructive">*</span></Label>
+                <Input className="mt-1" value={name} onChange={(e) => setName(e.target.value)} placeholder="如: 关闭工单" required />
+              </div>
+              <div>
+                <Label>来源状态 <span className="text-destructive">*</span></Label>
+                <Select value={fromStatusId || '__none__'} onValueChange={(v) => setFromStatusId(v === '__none__' ? '' : v)}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="请选择来源状态" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">请选择来源状态</SelectItem>
+                    {statuses.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>目标状态 <span className="text-destructive">*</span></Label>
+                <Select value={toStatusId || '__none__'} onValueChange={(v) => setToStatusId(v === '__none__' ? '' : v)}>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="请选择目标状态" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">请选择目标状态</SelectItem>
+                    {statuses.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>允许角色</Label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {roles.map((role: Role) => {
+                    const rolesArr = allowedRoles ? allowedRoles.split(',').map((r) => r.trim()) : []
+                    const checked = rolesArr.includes(role.code)
+                    return (
+                      <label key={role.id} className="inline-flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="rounded border-border accent-accent"
+                          checked={checked}
+                          onChange={() => {
+                            const next = checked
+                              ? rolesArr.filter((r) => r !== role.code)
+                              : [...rolesArr, role.code]
+                            setAllowedRoles(next.join(','))
+                          }}
+                        />
+                        <span className="text-sm text-foreground">{role.name}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">留空表示所有角色均可操作</p>
+              </div>
+            </div>
+            <DialogFooter className="mt-5">
+              <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>取消</Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? '保存中...' : editItem ? '保存' : '创建'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleteTarget}

@@ -12,6 +12,12 @@ import {
   ConfirmDialog,
   type Bulletin,
   type Column,
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
 import { BulletinForm } from './bulletin-form'
 
@@ -88,9 +94,6 @@ export function BulletinListPage() {
     setEditBulletin(undefined)
   }
 
-  const selectClass =
-    'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-
   const columns: Column<Bulletin>[] = [
     {
       key: 'title',
@@ -152,8 +155,10 @@ export function BulletinListPage() {
       title: '操作',
       render: (_, record) => (
         <div className="flex items-center gap-3">
-          <button
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 gap-1 text-xs text-muted-foreground hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation()
               navigate(`/bulletins/${record.id}`)
@@ -161,9 +166,11 @@ export function BulletinListPage() {
           >
             <Eye size={13} strokeWidth={1.5} />
             查看
-          </button>
-          <button
-            className="inline-flex items-center gap-1 text-xs text-accent hover:underline transition-colors"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 gap-1 text-xs text-accent hover:text-accent"
             onClick={(e) => {
               e.stopPropagation()
               handleEdit(record)
@@ -171,10 +178,12 @@ export function BulletinListPage() {
           >
             <Pencil size={13} strokeWidth={1.5} />
             编辑
-          </button>
+          </Button>
           {record.status === 0 && (
-            <button
-              className="inline-flex items-center gap-1 text-xs text-emerald-500 hover:underline transition-colors"
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto px-0 gap-1 text-xs text-emerald-500 hover:text-emerald-500"
               onClick={(e) => {
                 e.stopPropagation()
                 setPublishTarget(record)
@@ -182,10 +191,12 @@ export function BulletinListPage() {
             >
               <Send size={13} strokeWidth={1.5} />
               发布
-            </button>
+            </Button>
           )}
-          <button
-            className="inline-flex items-center gap-1 text-xs text-destructive hover:underline transition-colors"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 gap-1 text-xs text-destructive hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation()
               setDeleteTarget(record)
@@ -193,7 +204,7 @@ export function BulletinListPage() {
           >
             <Trash2 size={13} strokeWidth={1.5} />
             删除
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -204,44 +215,49 @@ export function BulletinListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">公告管理</h1>
-        <button
-          onClick={handleCreate}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-        >
+        <Button onClick={handleCreate}>
           <Plus size={16} strokeWidth={1.5} />
           新建公告
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={scopeTypeFilter}
-          onChange={(e) => {
-            setScopeTypeFilter(e.target.value)
+        <Select
+          value={scopeTypeFilter || '__all__'}
+          onValueChange={(v) => {
+            setScopeTypeFilter(v === '__all__' ? '' : v)
             setPage(1)
           }}
-          className={`${selectClass} w-36`}
         >
-          <option value="">全部范围</option>
-          <option value="all">全部</option>
-          <option value="region">大区</option>
-          <option value="province">省</option>
-        </select>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="全部范围" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">全部范围</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
+            <SelectItem value="region">大区</SelectItem>
+            <SelectItem value="province">省</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value)
+        <Select
+          value={statusFilter || '__all__'}
+          onValueChange={(v) => {
+            setStatusFilter(v === '__all__' ? '' : v)
             setPage(1)
           }}
-          className={`${selectClass} w-36`}
         >
-          <option value="">全部状态</option>
-          <option value="0">草稿</option>
-          <option value="1">已发布</option>
-          <option value="2">已归档</option>
-        </select>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="全部状态" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">全部状态</SelectItem>
+            <SelectItem value="0">草稿</SelectItem>
+            <SelectItem value="1">已发布</SelectItem>
+            <SelectItem value="2">已归档</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}

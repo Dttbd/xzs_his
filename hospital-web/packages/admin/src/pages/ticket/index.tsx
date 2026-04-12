@@ -10,6 +10,11 @@ import {
   DataTable,
   Pagination,
   StatusBadge,
+  Button,
+  Input,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from '@hospital/shared'
 import type { Column, Ticket } from '@hospital/shared'
 import { TicketCreateDialog } from './ticket-create'
@@ -139,7 +144,7 @@ export function TicketListPage() {
     },
   ]
 
-  const inputClass =
+  const selectClass =
     'px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors'
 
   return (
@@ -147,34 +152,22 @@ export function TicketListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">工单中心</h1>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
-        >
+        <Button onClick={() => setShowCreate(true)}>
           <Plus size={16} strokeWidth={1.5} />
           创建工单
-        </button>
+        </Button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => {
-              setTab(t.key)
-              setPage(1)
-            }}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === t.key
-                ? 'text-accent border-accent'
-                : 'text-muted-foreground border-transparent hover:text-foreground'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as TabKey); setPage(1) }}>
+        <TabsList>
+          {tabs.map((t) => (
+            <TabsTrigger key={t.key} value={t.key}>
+              {t.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
@@ -184,7 +177,7 @@ export function TicketListPage() {
             strokeWidth={1.5}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
           />
-          <input
+          <Input
             type="text"
             value={keyword}
             onChange={(e) => {
@@ -192,7 +185,7 @@ export function TicketListPage() {
               setPage(1)
             }}
             placeholder="搜索工单号或标题"
-            className={`${inputClass} pl-8 w-56`}
+            className="pl-8 w-56"
           />
         </div>
 
@@ -202,7 +195,7 @@ export function TicketListPage() {
             setTypeFilter(e.target.value)
             setPage(1)
           }}
-          className={`${inputClass} w-36`}
+          className={`${selectClass} w-36`}
         >
           <option value="">全部类型</option>
           {ticketTypes?.map((t) => (
@@ -218,7 +211,7 @@ export function TicketListPage() {
             setStatusFilter(e.target.value)
             setPage(1)
           }}
-          className={`${inputClass} w-36`}
+          className={`${selectClass} w-36`}
         >
           <option value="">全部状态</option>
           {ticketStatuses?.map((s) => (

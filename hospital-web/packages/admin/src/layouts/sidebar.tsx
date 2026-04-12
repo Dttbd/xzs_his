@@ -8,6 +8,7 @@ import {
   Users,
   Settings,
 } from 'lucide-react'
+import { cn } from '@hospital/shared'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: '工作台' },
@@ -22,8 +23,10 @@ const navItems = [
 export function Sidebar({ className = '' }: { className?: string }) {
   return (
     <aside
-      className={`fixed top-0 left-0 h-screen bg-card border-r border-border flex flex-col z-30
-        w-16 lg:w-[220px] ${className}`}
+      className={cn(
+        'fixed top-0 left-0 h-screen bg-card border-r border-border flex flex-col z-30 w-16 lg:w-[220px]',
+        className,
+      )}
     >
       {/* Logo */}
       <div className="h-[52px] flex items-center px-4 lg:px-5 border-b border-border">
@@ -41,12 +44,12 @@ export function Sidebar({ className = '' }: { className?: string }) {
             to={item.to}
             end={item.to === '/'}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 lg:px-5 py-2.5 mx-2 rounded-lg transition-colors
-              ${
+              cn(
+                'flex items-center gap-3 px-4 lg:px-5 py-2.5 mx-2 rounded-lg transition-colors border-l-2',
                 isActive
-                  ? 'text-accent bg-accent/10 border-l-2 border-accent lg:border-l-2'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/5 border-l-2 border-transparent'
-              }`
+                  ? 'text-accent bg-accent/10 border-accent'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/5 border-transparent',
+              )
             }
           >
             <item.icon size={20} strokeWidth={1.5} className="shrink-0" />

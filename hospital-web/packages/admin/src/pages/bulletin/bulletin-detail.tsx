@@ -9,6 +9,9 @@ import {
   StatusBadge,
   ConfirmDialog,
   Loading,
+  Button,
+  Card,
+  CardContent,
 } from '@hospital/shared'
 import { BulletinForm } from './bulletin-form'
 import type { Bulletin } from '@hospital/shared'
@@ -96,12 +99,14 @@ export function BulletinDetailPage() {
       {/* Back + Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/bulletins')}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft size={18} strokeWidth={1.5} />
-          </button>
+          </Button>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-semibold text-foreground">{bulletin.title}</h1>
@@ -118,53 +123,58 @@ export function BulletinDetailPage() {
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => setEditOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
-          >
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil size={14} strokeWidth={1.5} />
             编辑
-          </button>
+          </Button>
           {bulletin.status === 0 && (
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setPublishOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-500 hover:bg-emerald-500/20 transition-colors"
+              className="border-emerald-500/40 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-500"
             >
               <Send size={14} strokeWidth={1.5} />
               发布
-            </button>
+            </Button>
           )}
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setDeleteOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-sm text-destructive hover:bg-destructive/20 transition-colors"
+            className="border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
           >
             <Trash2 size={14} strokeWidth={1.5} />
             删除
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Meta */}
-      <div className="rounded-xl border border-border bg-card p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <MetaItem
-          label="范围"
-          value={SCOPE_TYPE_LABELS[bulletin.scope_type] ?? bulletin.scope_type}
-        />
-        <MetaItem
-          label="作者"
-          value={bulletin.author?.real_name || bulletin.author?.username || '-'}
-        />
-        <MetaItem label="发布时间" value={formatDateTime(bulletin.published_at)} />
-        <MetaItem label="过期时间" value={formatDateTime(bulletin.expires_at)} />
-      </div>
+      <Card>
+        <CardContent className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <MetaItem
+            label="范围"
+            value={SCOPE_TYPE_LABELS[bulletin.scope_type] ?? bulletin.scope_type}
+          />
+          <MetaItem
+            label="作者"
+            value={bulletin.author?.real_name || bulletin.author?.username || '-'}
+          />
+          <MetaItem label="发布时间" value={formatDateTime(bulletin.published_at)} />
+          <MetaItem label="过期时间" value={formatDateTime(bulletin.expires_at)} />
+        </CardContent>
+      </Card>
 
       {/* Content */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-sm font-medium text-muted-foreground mb-4">公告内容</h2>
-        <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-          {bulletin.content || <span className="text-muted-foreground italic">暂无内容</span>}
-        </div>
-      </div>
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-sm font-medium text-muted-foreground mb-4">公告内容</h2>
+          <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+            {bulletin.content || <span className="text-muted-foreground italic">暂无内容</span>}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Edit Form */}
       <BulletinForm

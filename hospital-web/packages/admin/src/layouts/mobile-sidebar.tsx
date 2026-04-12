@@ -8,6 +8,7 @@ import { X,
   Users,
   Settings,
 } from 'lucide-react'
+import { Button, cn } from '@hospital/shared'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: '工作台' },
@@ -40,13 +41,14 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         {/* Header */}
         <div className="h-[52px] flex items-center justify-between px-5 border-b border-border">
           <span className="text-accent font-bold text-lg">&#9670; HIS</span>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors"
             aria-label="关闭菜单"
           >
             <X size={20} strokeWidth={1.5} />
-          </button>
+          </Button>
         </div>
 
         {/* Navigation */}
@@ -58,12 +60,12 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
               end={item.to === '/'}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-5 py-2.5 mx-2 rounded-lg transition-colors
-                ${
+                cn(
+                  'flex items-center gap-3 px-5 py-2.5 mx-2 rounded-lg transition-colors',
                   isActive
                     ? 'text-accent bg-accent/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/5'
-                }`
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/5',
+                )
               }
             >
               <item.icon size={20} strokeWidth={1.5} className="shrink-0" />

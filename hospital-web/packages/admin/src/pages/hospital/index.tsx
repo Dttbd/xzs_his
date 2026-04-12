@@ -12,6 +12,8 @@ import {
   ConfirmDialog,
   Loading,
   Empty,
+  Button,
+  Input,
   type Hospital,
   type Column,
 } from '@hospital/shared'
@@ -102,8 +104,6 @@ export function HospitalListPage() {
     setEditHospital(undefined)
   }, [])
 
-  const inputClass =
-    'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
   const selectClass =
     'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
 
@@ -150,24 +150,28 @@ export function HospitalListPage() {
       title: '操作',
       render: (_: any, record: Hospital) => (
         <div className="flex gap-2">
-          <button
-            className="text-xs text-accent hover:underline"
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-xs"
             onClick={(e) => {
               e.stopPropagation()
               handleEdit(record)
             }}
           >
             编辑
-          </button>
-          <button
-            className="text-xs text-destructive hover:underline"
+          </Button>
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-xs text-destructive"
             onClick={(e) => {
               e.stopPropagation()
               setDeleteTarget(record)
             }}
           >
             删除
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -179,20 +183,14 @@ export function HospitalListPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-foreground">医院管理</h1>
         <div className="flex gap-2">
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-          >
+          <Button variant="outline" onClick={handleExport}>
             <Download className="h-4 w-4" strokeWidth={1.5} />
             导出
-          </button>
-          <button
-            onClick={handleCreate}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90"
-          >
+          </Button>
+          <Button onClick={handleCreate}>
             <Plus className="h-4 w-4" strokeWidth={1.5} />
             新建医院
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -216,8 +214,7 @@ export function HospitalListPage() {
         {filtersOpen && (
           <div className="border-t border-border px-4 pb-4 pt-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              <input
-                className={inputClass}
+              <Input
                 placeholder="搜索名称/编码"
                 value={keyword}
                 onChange={(e) => {

@@ -14,13 +14,15 @@ import {
   Loading,
   type Region,
   type Province,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
 import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
-
-const inputClass =
-  'border border-border bg-background rounded-lg px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-const selectClass =
-  'border border-border bg-background rounded-lg px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
 
 interface InlineInputProps {
   value: string
@@ -33,8 +35,8 @@ interface InlineInputProps {
 function InlineInput({ value, onChange, onConfirm, onCancel, placeholder }: InlineInputProps) {
   return (
     <div className="flex items-center gap-2">
-      <input
-        className={`${inputClass} flex-1`}
+      <Input
+        className="flex-1 h-8 py-1"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -44,18 +46,24 @@ function InlineInput({ value, onChange, onConfirm, onCancel, placeholder }: Inli
           if (e.key === 'Escape') onCancel()
         }}
       />
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         onClick={onConfirm}
-        className="rounded-lg p-1 text-accent hover:bg-accent/10 transition-colors"
+        className="p-1 h-auto text-accent hover:bg-accent/10"
       >
         <Check className="h-3.5 w-3.5" strokeWidth={1.5} />
-      </button>
-      <button
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         onClick={onCancel}
-        className="rounded-lg p-1 text-muted-foreground hover:bg-background transition-colors"
+        className="p-1 h-auto text-muted-foreground"
       >
         <X className="h-3.5 w-3.5" strokeWidth={1.5} />
-      </button>
+      </Button>
     </div>
   )
 }
@@ -156,16 +164,18 @@ export function OrgSettings() {
       <div className="rounded-xl border border-border bg-card p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-foreground">大区管理</h3>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
             onClick={() => {
               setAddingRegion(true)
               setNewRegionName('')
             }}
-            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
             新增
-          </button>
+          </Button>
         </div>
 
         {regionsLoading ? (
@@ -255,16 +265,18 @@ export function OrgSettings() {
             )}
           </h3>
           {selectedRegionId && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
               onClick={() => {
                 setAddingProvince(true)
                 setNewProvinceName('')
               }}
-              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs text-accent hover:bg-accent/10 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
               新增
-            </button>
+            </Button>
           )}
         </div>
 
@@ -320,24 +332,27 @@ export function OrgSettings() {
                       )}
                     </div>
                     <div className="hidden group-hover:flex items-center gap-1">
-                      <select
-                        className={`${selectClass} text-xs py-1 max-w-[120px]`}
-                        value={province.default_handler ?? ''}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) =>
+                      <Select
+                        value={province.default_handler ?? '__none__'}
+                        onValueChange={(v) =>
                           updateProvinceMut.mutate({
                             id: province.id,
-                            payload: { default_handler: e.target.value || null },
+                            payload: { default_handler: v === '__none__' ? null : v },
                           })
                         }
                       >
-                        <option value="">默认负责人</option>
-                        {users.map((u: any) => (
-                          <option key={u.id} value={u.id}>
-                            {u.real_name || u.username}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger className="h-7 text-xs py-1 max-w-[120px]" onClick={(e) => e.stopPropagation()}>
+                          <SelectValue placeholder="默认负责人" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">默认负责人</SelectItem>
+                          {users.map((u: any) => (
+                            <SelectItem key={u.id} value={u.id}>
+                              {u.real_name || u.username}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <button
                         onClick={() => {
                           setEditProvince(province)

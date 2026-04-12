@@ -1,7 +1,17 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactECharts from 'echarts-for-react'
-import { getTicketStats, getTicketTrend, useThemeContext } from '@hospital/shared'
+import {
+  getTicketStats,
+  getTicketTrend,
+  useThemeContext,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@hospital/shared'
 
 const GROUP_OPTIONS = [
   { value: 'type', label: '按类型' },
@@ -16,9 +26,6 @@ const INTERVAL_OPTIONS = [
 ]
 
 const PALETTE = ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#4f46e5', '#4338ca', '#3730a3']
-
-const selectClass =
-  'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
 
 export function TicketStatsPage() {
   const { resolvedTheme } = useThemeContext()
@@ -231,32 +238,33 @@ export function TicketStatsPage() {
       <div className="bg-card border border-border rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">分组维度</label>
-          <select
-            className={selectClass}
-            value={groupBy}
-            onChange={(e) => setGroupBy(e.target.value)}
-          >
-            {GROUP_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={groupBy} onValueChange={setGroupBy}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GROUP_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">开始日期</label>
-          <input
+          <Input
             type="date"
-            className={selectClass}
+            className="w-40"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">结束日期</label>
-          <input
+          <Input
             type="date"
-            className={selectClass}
+            className="w-40"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
@@ -284,17 +292,18 @@ export function TicketStatsPage() {
       <div className="bg-card border border-border rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-foreground">工单趋势</h3>
-          <select
-            className={selectClass}
-            value={interval}
-            onChange={(e) => setInterval(e.target.value)}
-          >
-            {INTERVAL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={interval} onValueChange={setInterval}>
+            <SelectTrigger className="w-28">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {INTERVAL_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         {trendLoading ? <Spinner /> : trend.length === 0 ? <Empty /> : (
           <ReactECharts option={trendOption} style={{ height: 240 }} notMerge />

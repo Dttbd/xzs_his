@@ -2,7 +2,18 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactECharts from 'echarts-for-react'
 import { Download } from 'lucide-react'
-import { getHospitalStats, exportHospitals, useThemeContext } from '@hospital/shared'
+import {
+  getHospitalStats,
+  exportHospitals,
+  useThemeContext,
+  Button,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@hospital/shared'
 
 const GROUP_OPTIONS = [
   { value: 'province', label: '按省份' },
@@ -10,9 +21,6 @@ const GROUP_OPTIONS = [
   { value: 'category', label: '按分类' },
   { value: 'specialty_type', label: '按专科类型' },
 ]
-
-const selectClass =
-  'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
 
 export function HospitalStatsPage() {
   const { resolvedTheme } = useThemeContext()
@@ -107,46 +115,44 @@ export function HospitalStatsPage() {
       <div className="bg-card border border-border rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">分组维度</label>
-          <select
-            className={selectClass}
-            value={groupBy}
-            onChange={(e) => setGroupBy(e.target.value)}
-          >
-            {GROUP_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={groupBy} onValueChange={setGroupBy}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GROUP_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">大区 ID</label>
-          <input
+          <Input
             type="text"
             placeholder="留空不筛选"
-            className={selectClass}
+            className="w-36"
             value={regionId}
             onChange={(e) => setRegionId(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">省份 ID</label>
-          <input
+          <Input
             type="text"
             placeholder="留空不筛选"
-            className={selectClass}
+            className="w-36"
             value={provinceId}
             onChange={(e) => setProvinceId(e.target.value)}
           />
         </div>
         <div className="ml-auto">
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-          >
+          <Button variant="outline" onClick={handleExport}>
             <Download size={14} strokeWidth={1.5} />
             导出 Excel
-          </button>
+          </Button>
         </div>
       </div>
 

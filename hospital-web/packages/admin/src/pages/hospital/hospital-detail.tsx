@@ -7,6 +7,11 @@ import {
   Empty,
   StatusBadge,
   ConfirmDialog,
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
 } from '@hospital/shared'
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -56,91 +61,105 @@ export function HospitalDetailPage() {
   return (
     <div className="space-y-6">
       {/* Back */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => navigate('/hospitals')}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
         返回列表
-      </button>
+      </Button>
 
       {/* Header */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-foreground">{hospital.name}</h1>
-            <span className="text-sm text-muted-foreground">{hospital.code}</span>
-            <StatusBadge status={s.key} label={s.label} />
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-semibold text-foreground">{hospital.name}</h1>
+              <span className="text-sm text-muted-foreground">{hospital.code}</span>
+              <StatusBadge status={s.key} label={s.label} />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setFormOpen(true)}>
+                <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                编辑
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteOpen(true)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                删除
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFormOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-            >
-              <Pencil className="h-4 w-4" strokeWidth={1.5} />
-              编辑
-            </button>
-            <button
-              onClick={() => setDeleteOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm text-destructive transition-colors hover:bg-background"
-            >
-              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-              删除
-            </button>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Info grid */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <h2 className="text-base font-semibold text-foreground mb-4">基本信息</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
-          <InfoItem label="医院名称" value={hospital.name} />
-          <InfoItem label="医院编码" value={hospital.code} />
-          <InfoItem label="等级" value={hospital.level} />
-          <InfoItem label="分类" value={hospital.category?.name} />
-          <InfoItem label="省份" value={hospital.province?.name} />
-          <InfoItem label="城市" value={hospital.city} />
-          <InfoItem label="地址" value={hospital.address} />
-          <InfoItem label="联系人" value={hospital.contact_name} />
-          <InfoItem label="联系电话" value={hospital.contact_phone} />
-          <InfoItem label="联系邮箱" value={hospital.contact_email} />
-          <InfoItem
-            label="负责人"
-            value={hospital.owner_user?.real_name ?? hospital.owner_user?.username}
-          />
-          <InfoItem label="床位数" value={hospital.bed_count?.toString()} />
-          <InfoItem label="科室数" value={hospital.department_count?.toString()} />
-          <InfoItem
-            label="专科医院"
-            value={hospital.is_specialized ? '是' : '否'}
-          />
-          {hospital.is_specialized && (
-            <InfoItem label="专科类型" value={hospital.specialty_type} />
-          )}
-          <InfoItem label="创建时间" value={hospital.created_at?.slice(0, 19).replace('T', ' ')} />
-          <InfoItem label="更新时间" value={hospital.updated_at?.slice(0, 19).replace('T', ' ')} />
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">基本信息</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
+            <InfoItem label="医院名称" value={hospital.name} />
+            <InfoItem label="医院编码" value={hospital.code} />
+            <InfoItem label="等级" value={hospital.level} />
+            <InfoItem label="分类" value={hospital.category?.name} />
+            <InfoItem label="省份" value={hospital.province?.name} />
+            <InfoItem label="城市" value={hospital.city} />
+            <InfoItem label="地址" value={hospital.address} />
+            <InfoItem label="联系人" value={hospital.contact_name} />
+            <InfoItem label="联系电话" value={hospital.contact_phone} />
+            <InfoItem label="联系邮箱" value={hospital.contact_email} />
+            <InfoItem
+              label="负责人"
+              value={hospital.owner_user?.real_name ?? hospital.owner_user?.username}
+            />
+            <InfoItem label="床位数" value={hospital.bed_count?.toString()} />
+            <InfoItem label="科室数" value={hospital.department_count?.toString()} />
+            <InfoItem
+              label="专科医院"
+              value={hospital.is_specialized ? '是' : '否'}
+            />
+            {hospital.is_specialized && (
+              <InfoItem label="专科类型" value={hospital.specialty_type} />
+            )}
+            <InfoItem label="创建时间" value={hospital.created_at?.slice(0, 19).replace('T', ' ')} />
+            <InfoItem label="更新时间" value={hospital.updated_at?.slice(0, 19).replace('T', ' ')} />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Remark */}
       {hospital.remark && (
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="text-base font-semibold text-foreground mb-2">备注</h2>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{hospital.remark}</p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">备注</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{hospital.remark}</p>
+          </CardContent>
+        </Card>
       )}
 
       {/* Dynamic fields */}
       {hospital.fields && hospital.fields.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-6">
-          <h2 className="text-base font-semibold text-foreground mb-4">扩展字段</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
-            {hospital.fields.map((f) => (
-              <InfoItem key={f.id} label={f.field_key} value={f.field_value} />
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">扩展字段</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-1">
+              {hospital.fields.map((f) => (
+                <InfoItem key={f.id} label={f.field_key} value={f.field_value} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Dialogs */}

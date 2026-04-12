@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactECharts from 'echarts-for-react'
-import { getSalesStats, useThemeContext } from '@hospital/shared'
-
-const selectClass =
-  'border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
+import { getSalesStats, useThemeContext, Input } from '@hospital/shared'
 
 export function SalesStatsPage() {
   const { resolvedTheme } = useThemeContext()
@@ -120,38 +117,38 @@ export function SalesStatsPage() {
       <div className="bg-card border border-border rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">开始日期</label>
-          <input
+          <Input
             type="date"
-            className={selectClass}
+            className="w-40"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">结束日期</label>
-          <input
+          <Input
             type="date"
-            className={selectClass}
+            className="w-40"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">大区 ID</label>
-          <input
+          <Input
             type="text"
             placeholder="留空不筛选"
-            className={selectClass}
+            className="w-36"
             value={regionId}
             onChange={(e) => setRegionId(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">省份 ID</label>
-          <input
+          <Input
             type="text"
             placeholder="留空不筛选"
-            className={selectClass}
+            className="w-36"
             value={provinceId}
             onChange={(e) => setProvinceId(e.target.value)}
           />

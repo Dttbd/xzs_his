@@ -1,5 +1,6 @@
 import { Sun, Moon, Monitor } from 'lucide-react'
 import { useThemeContext } from './theme-provider'
+import { Button } from './ui/button'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useThemeContext()
@@ -12,12 +13,13 @@ export function ThemeToggle() {
   const Icon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={cycle}
-      className="p-2 rounded-lg border border-border text-muted hover:text-foreground transition-colors"
       title={`Theme: ${theme}`}
     >
       <Icon size={18} strokeWidth={1.5} />
-    </button>
+    </Button>
   )
 }

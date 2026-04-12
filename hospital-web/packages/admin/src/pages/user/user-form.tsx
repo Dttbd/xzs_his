@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createUser,
@@ -10,9 +10,21 @@ import {
   type Role,
   type Region,
   type Province,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
 import type { UserInfo } from '@hospital/shared'
-import { X } from 'lucide-react'
 
 interface UserFormProps {
   open: boolean
@@ -42,9 +54,10 @@ const emptyForm: FormData = {
   role_ids: [],
 }
 
+const errorClass = 'text-xs text-destructive mt-1'
+
 export function UserForm({ open, onClose, user }: UserFormProps) {
   const queryClient = useQueryClient()
-  const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!user
 
   const [form, setForm] = useState<FormData>(emptyForm)
@@ -69,15 +82,6 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
       setErrors({})
     }
   }, [open, user])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
 
   const { data: roles = [] } = useQuery({
     queryKey: ['roles'],
@@ -162,46 +166,23 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
-  if (!open) return null
-
-  const inputClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-  const selectClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-  const labelClass = 'block text-sm font-medium text-foreground mb-1'
-  const errorClass = 'text-xs text-destructive mt-1'
-
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">
-            {isEdit ? '编辑用户' : '新建用户'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? '编辑用户' : '新建用户'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             {!isEdit && (
               <>
                 <div>
-                  <label className={labelClass}>
+                  <Label>
                     用户名 <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    className={inputClass}
+                  </Label>
+                  <Input
+                    className="mt-1"
                     value={form.username}
                     onChange={(e) => updateField('username', e.target.value)}
                     placeholder="请输入用户名"
@@ -210,11 +191,11 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
                   {errors.username && <p className={errorClass}>{errors.username}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>
+                  <Label>
                     密码 <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    className={inputClass}
+                  </Label>
+                  <Input
+                    className="mt-1"
                     type="password"
                     value={form.password}
                     onChange={(e) => updateField('password', e.target.value)}
@@ -227,11 +208,11 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
             )}
 
             <div>
-              <label className={labelClass}>
+              <Label>
                 姓名 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={form.real_name}
                 onChange={(e) => updateField('real_name', e.target.value)}
                 placeholder="请输入真实姓名"
@@ -241,18 +222,18 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>手机号</label>
-                <input
-                  className={inputClass}
+                <Label>手机号</Label>
+                <Input
+                  className="mt-1"
                   value={form.phone}
                   onChange={(e) => updateField('phone', e.target.value)}
                   placeholder="请输入手机号"
                 />
               </div>
               <div>
-                <label className={labelClass}>邮箱</label>
-                <input
-                  className={inputClass}
+                <Label>邮箱</Label>
+                <Input
+                  className="mt-1"
                   type="email"
                   value={form.email}
                   onChange={(e) => updateField('email', e.target.value)}
@@ -263,39 +244,47 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>大区</label>
-                <select
-                  className={selectClass}
-                  value={form.region_id}
-                  onChange={(e) => updateField('region_id', e.target.value)}
+                <Label>大区</Label>
+                <Select
+                  value={form.region_id || '__none__'}
+                  onValueChange={(v) => updateField('region_id', v === '__none__' ? '' : v)}
                 >
-                  <option value="">请选择大区</option>
-                  {regions.map((r: Region) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="请选择大区" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">请选择大区</SelectItem>
+                    {regions.map((r: Region) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <label className={labelClass}>省份</label>
-                <select
-                  className={selectClass}
-                  value={form.province_id}
-                  onChange={(e) => updateField('province_id', e.target.value)}
+                <Label>省份</Label>
+                <Select
+                  value={form.province_id || '__none__'}
+                  onValueChange={(v) => updateField('province_id', v === '__none__' ? '' : v)}
                 >
-                  <option value="">请选择省份</option>
-                  {filteredProvinces.map((p: Province) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="请选择省份" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">请选择省份</SelectItem>
+                    {filteredProvinces.map((p: Province) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div>
-              <label className={labelClass}>角色</label>
+              <Label>角色</Label>
               <div className="flex flex-wrap gap-2 mt-1">
                 {roles.map((role: Role) => (
                   <label
@@ -318,24 +307,16 @@ export function UserForm({ open, onClose, user }: UserFormProps) {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-            >
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               取消
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

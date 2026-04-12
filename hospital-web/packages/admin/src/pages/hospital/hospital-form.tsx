@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,11 +9,18 @@ import {
   listCategories,
   listProvinces,
   listUsers,
+  Button,
+  Input,
+  Label,
+  Textarea,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   type Hospital,
   type HospitalCategory,
   type Province,
 } from '@hospital/shared'
-import { X } from 'lucide-react'
 
 interface HospitalFormProps {
   open: boolean
@@ -69,7 +76,6 @@ const emptyDefaults: HospitalFormData = {
 
 export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
   const queryClient = useQueryClient()
-  const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!hospital
 
   const {
@@ -113,15 +119,6 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
     }
   }, [open, hospital, reset])
 
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
-
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: () => listCategories(),
@@ -158,45 +155,26 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
     mutation.mutate(payload)
   }
 
-  if (!open) return null
-
-  const inputClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
   const selectClass =
     'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-  const labelClass = 'block text-sm font-medium text-foreground mb-1'
   const errorClass = 'text-xs text-destructive mt-1'
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">
-            {isEdit ? '编辑医院' : '新建医院'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? '编辑医院' : '新建医院'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name */}
             <div>
-              <label className={labelClass}>
+              <Label>
                 医院名称 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入医院名称"
                 {...register('name')}
               />
@@ -205,11 +183,11 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Code */}
             <div>
-              <label className={labelClass}>
+              <Label>
                 医院编码 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入医院编码"
                 {...register('code')}
               />
@@ -218,8 +196,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Category */}
             <div>
-              <label className={labelClass}>分类</label>
-              <select className={selectClass} {...register('category_id')}>
+              <Label>分类</Label>
+              <select className={`${selectClass} mt-1.5`} {...register('category_id')}>
                 <option value="">请选择分类</option>
                 {categories.map((c: HospitalCategory) => (
                   <option key={c.id} value={c.id}>
@@ -231,8 +209,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Level */}
             <div>
-              <label className={labelClass}>等级</label>
-              <select className={selectClass} {...register('level')}>
+              <Label>等级</Label>
+              <select className={`${selectClass} mt-1.5`} {...register('level')}>
                 <option value="">请选择等级</option>
                 {LEVELS.map((l) => (
                   <option key={l} value={l}>
@@ -244,8 +222,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Province */}
             <div>
-              <label className={labelClass}>省份</label>
-              <select className={selectClass} {...register('province_id')}>
+              <Label>省份</Label>
+              <select className={`${selectClass} mt-1.5`} {...register('province_id')}>
                 <option value="">请选择省份</option>
                 {provinces.map((p: Province) => (
                   <option key={p.id} value={p.id}>
@@ -257,9 +235,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* City */}
             <div>
-              <label className={labelClass}>城市</label>
-              <input
-                className={inputClass}
+              <Label>城市</Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入城市"
                 {...register('city')}
               />
@@ -267,9 +245,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Address */}
             <div className="md:col-span-2">
-              <label className={labelClass}>地址</label>
-              <input
-                className={inputClass}
+              <Label>地址</Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入详细地址"
                 {...register('address')}
               />
@@ -277,9 +255,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Contact Name */}
             <div>
-              <label className={labelClass}>联系人</label>
-              <input
-                className={inputClass}
+              <Label>联系人</Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入联系人姓名"
                 {...register('contact_name')}
               />
@@ -287,9 +265,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Contact Phone */}
             <div>
-              <label className={labelClass}>联系电话</label>
-              <input
-                className={inputClass}
+              <Label>联系电话</Label>
+              <Input
+                className="mt-1.5"
                 placeholder="请输入联系电话"
                 {...register('contact_phone')}
               />
@@ -297,9 +275,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Contact Email */}
             <div>
-              <label className={labelClass}>联系邮箱</label>
-              <input
-                className={inputClass}
+              <Label>联系邮箱</Label>
+              <Input
+                className="mt-1.5"
                 type="email"
                 placeholder="请输入联系邮箱"
                 {...register('contact_email')}
@@ -311,8 +289,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Owner */}
             <div>
-              <label className={labelClass}>负责人</label>
-              <select className={selectClass} {...register('owner_user_id')}>
+              <Label>负责人</Label>
+              <select className={`${selectClass} mt-1.5`} {...register('owner_user_id')}>
                 <option value="">请选择负责人</option>
                 {users.map((u: any) => (
                   <option key={u.id} value={u.id}>
@@ -324,9 +302,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Bed Count */}
             <div>
-              <label className={labelClass}>床位数</label>
-              <input
-                className={inputClass}
+              <Label>床位数</Label>
+              <Input
+                className="mt-1.5"
                 type="number"
                 min={0}
                 {...register('bed_count', { valueAsNumber: true })}
@@ -338,9 +316,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Department Count */}
             <div>
-              <label className={labelClass}>科室数</label>
-              <input
-                className={inputClass}
+              <Label>科室数</Label>
+              <Input
+                className="mt-1.5"
                 type="number"
                 min={0}
                 {...register('department_count', { valueAsNumber: true })}
@@ -352,7 +330,7 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Is Specialized */}
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-foreground">专科医院</label>
+              <Label>专科医院</Label>
               <Controller
                 name="is_specialized"
                 control={control}
@@ -377,9 +355,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
             {/* Specialty Type */}
             {isSpecialized && (
               <div>
-                <label className={labelClass}>专科类型</label>
-                <input
-                  className={inputClass}
+                <Label>专科类型</Label>
+                <Input
+                  className="mt-1.5"
                   placeholder="请输入专科类型"
                   {...register('specialty_type')}
                 />
@@ -388,9 +366,9 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
             {/* Remark */}
             <div className="md:col-span-2">
-              <label className={labelClass}>备注</label>
-              <textarea
-                className={`${inputClass} resize-none`}
+              <Label>备注</Label>
+              <Textarea
+                className="mt-1.5 resize-none"
                 rows={3}
                 placeholder="请输入备注信息"
                 {...register('remark')}
@@ -400,23 +378,15 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
 
           {/* Actions */}
           <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-            >
+            <Button type="button" variant="outline" onClick={onClose}>
               取消
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

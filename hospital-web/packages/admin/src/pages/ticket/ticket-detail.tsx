@@ -18,6 +18,15 @@ import {
   listUsers,
   StatusBadge,
   Loading,
+  Button,
+  Label,
+  Textarea,
+  Card,
+  CardContent,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@hospital/shared'
 import { TicketTimeline } from './ticket-timeline'
 
@@ -120,19 +129,21 @@ export function TicketDetailPage() {
 
   const p = priorityMap[ticket.priority] || priorityMap[2]
 
-  const inputClass =
+  const selectClass =
     'w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors'
 
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => navigate('/tickets')}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft size={16} strokeWidth={1.5} />
         返回工单列表
-      </button>
+      </Button>
 
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -148,43 +159,47 @@ export function TicketDetailPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {availableTransitions.map((t) => (
-            <button
+            <Button
               key={t.id}
+              variant="outline"
+              size="sm"
               onClick={() => transitionMutation.mutate({ toStatusId: t.to_status_id })}
               disabled={transitionMutation.isPending}
-              className="px-3 py-1.5 text-sm border border-border rounded-lg text-foreground hover:bg-background transition-colors disabled:opacity-50"
             >
               {t.name}
-            </button>
+            </Button>
           ))}
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowAssignDialog(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-border rounded-lg text-foreground hover:bg-background transition-colors"
           >
             <UserCheck size={14} strokeWidth={1.5} />
             转派
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* Info section */}
-      <div className="bg-card border border-border rounded-xl p-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <InfoField label="工单类型" value={ticket.type?.name || '-'} />
-          <InfoField
-            label="优先级"
-            value={<span className={`font-medium ${p.color}`}>{p.label}</span>}
-          />
-          <InfoField label="关联医院" value={ticket.hospital?.name || '-'} />
-          <InfoField label="创建人" value={ticket.creator?.real_name || '-'} />
-          <InfoField label="处理人" value={ticket.assignee?.real_name || '未指派'} />
-          <InfoField label="创建时间" value={formatDateTime(ticket.created_at)} />
-          <InfoField label="更新时间" value={formatDateTime(ticket.updated_at)} />
-          {ticket.resolved_at && (
-            <InfoField label="解决时间" value={formatDateTime(ticket.resolved_at)} />
-          )}
-        </div>
-      </div>
+      <Card>
+        <CardContent className="pt-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <InfoField label="工单类型" value={ticket.type?.name || '-'} />
+            <InfoField
+              label="优先级"
+              value={<span className={`font-medium ${p.color}`}>{p.label}</span>}
+            />
+            <InfoField label="关联医院" value={ticket.hospital?.name || '-'} />
+            <InfoField label="创建人" value={ticket.creator?.real_name || '-'} />
+            <InfoField label="处理人" value={ticket.assignee?.real_name || '未指派'} />
+            <InfoField label="创建时间" value={formatDateTime(ticket.created_at)} />
+            <InfoField label="更新时间" value={formatDateTime(ticket.updated_at)} />
+            {ticket.resolved_at && (
+              <InfoField label="解决时间" value={formatDateTime(ticket.resolved_at)} />
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Description */}
       {ticket.description && (
@@ -227,95 +242,97 @@ export function TicketDetailPage() {
       </div>
 
       {/* Comment input */}
-      <div className="border border-border rounded-xl bg-card p-4 space-y-3">
-        <textarea
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          placeholder="添加留言..."
-          rows={3}
-          className={`${inputClass} resize-none`}
-        />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <label className="inline-flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
+      <Card>
+        <CardContent className="pt-4 space-y-3">
+          <Textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="添加留言..."
+            rows={3}
+            className="resize-none"
+          />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <label className="inline-flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isInternal}
+                  onChange={(e) => setIsInternal(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <Lock size={14} strokeWidth={1.5} />
+                内部备注
+              </label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={attachMutation.isPending}
+                className="text-muted-foreground"
+              >
+                <Paperclip size={14} strokeWidth={1.5} />
+                {attachMutation.isPending ? '上传中...' : '附件'}
+              </Button>
               <input
-                type="checkbox"
-                checked={isInternal}
-                onChange={(e) => setIsInternal(e.target.checked)}
-                className="rounded border-border"
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
               />
-              <Lock size={14} strokeWidth={1.5} />
-              内部备注
-            </label>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={attachMutation.isPending}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            </div>
+            <Button
+              onClick={() => commentMutation.mutate()}
+              disabled={!commentText.trim() || commentMutation.isPending}
             >
-              <Paperclip size={14} strokeWidth={1.5} />
-              {attachMutation.isPending ? '上传中...' : '附件'}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+              <Send size={14} strokeWidth={1.5} />
+              {commentMutation.isPending ? '发送中...' : '发送'}
+            </Button>
           </div>
-          <button
-            onClick={() => commentMutation.mutate()}
-            disabled={!commentText.trim() || commentMutation.isPending}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            <Send size={14} strokeWidth={1.5} />
-            {commentMutation.isPending ? '发送中...' : '发送'}
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Assign Dialog */}
-      {showAssignDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm bg-card border border-border rounded-xl p-6 mx-4">
-            <h3 className="text-lg font-semibold text-foreground mb-4">转派工单</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-foreground mb-1.5">选择处理人</label>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">请选择</option>
-                  {usersResult?.list?.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.real_name || u.username}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowAssignDialog(false)
-                    setAssigneeId('')
-                  }}
-                  className="px-4 py-2 text-sm border border-border rounded-lg text-foreground hover:bg-background transition-colors"
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => assigneeId && assignMutation.mutate(assigneeId)}
-                  disabled={!assigneeId || assignMutation.isPending}
-                  className="px-4 py-2 text-sm bg-accent text-accent-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-                >
-                  {assignMutation.isPending ? '转派中...' : '确认转派'}
-                </button>
-              </div>
+      <Dialog open={showAssignDialog} onOpenChange={(v) => { if (!v) { setShowAssignDialog(false); setAssigneeId('') } }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>转派工单</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>选择处理人</Label>
+              <select
+                value={assigneeId}
+                onChange={(e) => setAssigneeId(e.target.value)}
+                className={`${selectClass} mt-1.5`}
+              >
+                <option value="">请选择</option>
+                {usersResult?.list?.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.real_name || u.username}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAssignDialog(false)
+                  setAssigneeId('')
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={() => assigneeId && assignMutation.mutate(assigneeId)}
+                disabled={!assigneeId || assignMutation.isPending}
+              >
+                {assignMutation.isPending ? '转派中...' : '确认转派'}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,7 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { changePassword } from '@hospital/shared'
-import { X } from 'lucide-react'
+import {
+  changePassword,
+  Button,
+  Input,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@hospital/shared'
 
 interface ChangePasswordDialogProps {
   open: boolean
@@ -21,7 +29,6 @@ const emptyForm: FormData = {
 }
 
 export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProps) {
-  const overlayRef = useRef<HTMLDivElement>(null)
   const [form, setForm] = useState<FormData>(emptyForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
@@ -33,15 +40,6 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
       setSuccess(false)
     }
   }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -77,31 +75,14 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
     if (errors.submit) setErrors((prev) => ({ ...prev, submit: '' }))
   }
 
-  if (!open) return null
-
-  const inputClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-  const labelClass = 'block text-sm font-medium text-foreground mb-1'
   const errorClass = 'text-xs text-destructive mt-1'
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">修改密码</h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>修改密码</DialogTitle>
+        </DialogHeader>
 
         {success ? (
           <p className="text-sm text-center text-accent py-4">密码修改成功</p>
@@ -109,46 +90,46 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
           <form onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>
+                <Label>
                   旧密码 <span className="text-destructive">*</span>
-                </label>
-                <input
-                  className={inputClass}
+                </Label>
+                <Input
                   type="password"
                   value={form.old_password}
                   onChange={(e) => updateField('old_password', e.target.value)}
                   placeholder="请输入旧密码"
                   autoComplete="current-password"
+                  className="mt-1.5"
                 />
                 {errors.old_password && <p className={errorClass}>{errors.old_password}</p>}
               </div>
 
               <div>
-                <label className={labelClass}>
+                <Label>
                   新密码 <span className="text-destructive">*</span>
-                </label>
-                <input
-                  className={inputClass}
+                </Label>
+                <Input
                   type="password"
                   value={form.new_password}
                   onChange={(e) => updateField('new_password', e.target.value)}
                   placeholder="至少6位"
                   autoComplete="new-password"
+                  className="mt-1.5"
                 />
                 {errors.new_password && <p className={errorClass}>{errors.new_password}</p>}
               </div>
 
               <div>
-                <label className={labelClass}>
+                <Label>
                   确认新密码 <span className="text-destructive">*</span>
-                </label>
-                <input
-                  className={inputClass}
+                </Label>
+                <Input
                   type="password"
                   value={form.confirm_password}
                   onChange={(e) => updateField('confirm_password', e.target.value)}
                   placeholder="再次输入新密码"
                   autoComplete="new-password"
+                  className="mt-1.5"
                 />
                 {errors.confirm_password && (
                   <p className={errorClass}>{errors.confirm_password}</p>
@@ -161,24 +142,16 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-              >
+              <Button type="button" variant="outline" onClick={onClose}>
                 取消
-              </button>
-              <button
-                type="submit"
-                disabled={mutation.isPending}
-                className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90 disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? '提交中...' : '确认修改'}
-              </button>
+              </Button>
             </div>
           </form>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

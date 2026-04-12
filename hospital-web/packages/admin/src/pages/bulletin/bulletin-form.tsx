@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createBulletin,
@@ -8,8 +8,21 @@ import {
   type Bulletin,
   type Region,
   type Province,
+  Button,
+  Input,
+  Textarea,
+  Label,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@hospital/shared'
-import { X } from 'lucide-react'
 
 interface BulletinFormProps {
   open: boolean
@@ -35,9 +48,10 @@ const emptyForm: FormData = {
   expires_at: '',
 }
 
+const errorClass = 'text-xs text-destructive mt-1'
+
 export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
   const queryClient = useQueryClient()
-  const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!bulletin
 
   const [form, setForm] = useState<FormData>(emptyForm)
@@ -62,15 +76,6 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
       setErrors({})
     }
   }, [open, bulletin])
-
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [open, onClose])
 
   const { data: regions = [] } = useQuery({
     queryKey: ['regions'],
@@ -125,15 +130,6 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
-  if (!open) return null
-
-  const inputClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent'
-  const selectClass =
-    'w-full border border-border bg-background rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-accent appearance-none'
-  const labelClass = 'block text-sm font-medium text-foreground mb-1'
-  const errorClass = 'text-xs text-destructive mt-1'
-
   const scopeOptions =
     form.scope_type === 'region'
       ? regions
@@ -142,35 +138,21 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
         : []
 
   return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose()
-      }}
-    >
-      <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-xl border border-border bg-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-foreground">
-            {isEdit ? '编辑公告' : '新建公告'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 transition-colors hover:bg-background"
-          >
-            <X className="h-4 w-4" strokeWidth={1.5} />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? '编辑公告' : '新建公告'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             {/* Title */}
             <div>
-              <label className={labelClass}>
+              <Label>
                 标题 <span className="text-destructive">*</span>
-              </label>
-              <input
-                className={inputClass}
+              </Label>
+              <Input
+                className="mt-1"
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
                 placeholder="请输入公告标题"
@@ -180,11 +162,11 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
 
             {/* Content */}
             <div>
-              <label className={labelClass}>
+              <Label>
                 内容 <span className="text-destructive">*</span>
-              </label>
-              <textarea
-                className={`${inputClass} resize-none`}
+              </Label>
+              <Textarea
+                className="mt-1 resize-none"
                 rows={5}
                 value={form.content}
                 onChange={(e) => updateField('content', e.target.value)}
@@ -195,44 +177,52 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
 
             {/* Scope Type */}
             <div>
-              <label className={labelClass}>范围类型</label>
-              <select
-                className={selectClass}
+              <Label>范围类型</Label>
+              <Select
                 value={form.scope_type}
-                onChange={(e) => updateField('scope_type', e.target.value)}
+                onValueChange={(v) => updateField('scope_type', v)}
               >
-                <option value="all">全部</option>
-                <option value="region">大区</option>
-                <option value="province">省</option>
-              </select>
+                <SelectTrigger className="mt-1 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="region">大区</SelectItem>
+                  <SelectItem value="province">省</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Scope ID */}
             {(form.scope_type === 'region' || form.scope_type === 'province') && (
               <div>
-                <label className={labelClass}>
+                <Label>
                   {form.scope_type === 'region' ? '选择大区' : '选择省份'}
-                </label>
-                <select
-                  className={selectClass}
-                  value={form.scope_id}
-                  onChange={(e) => updateField('scope_id', e.target.value)}
+                </Label>
+                <Select
+                  value={form.scope_id || '__none__'}
+                  onValueChange={(v) => updateField('scope_id', v === '__none__' ? '' : v)}
                 >
-                  <option value="">
-                    {form.scope_type === 'region' ? '请选择大区' : '请选择省份'}
-                  </option>
-                  {(scopeOptions as (Region | Province)[]).map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder={form.scope_type === 'region' ? '请选择大区' : '请选择省份'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">
+                      {form.scope_type === 'region' ? '请选择大区' : '请选择省份'}
+                    </SelectItem>
+                    {(scopeOptions as (Region | Province)[]).map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
             {/* Is Pinned */}
             <div className="flex items-center gap-3">
-              <label className="text-sm font-medium text-foreground">置顶</label>
+              <Label>置顶</Label>
               <button
                 type="button"
                 onClick={() => updateField('is_pinned', !form.is_pinned)}
@@ -250,35 +240,26 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
 
             {/* Expires At */}
             <div>
-              <label className={labelClass}>过期时间</label>
-              <input
+              <Label>过期时间</Label>
+              <Input
                 type="date"
-                className={inputClass}
+                className="mt-1"
                 value={form.expires_at}
                 onChange={(e) => updateField('expires_at', e.target.value)}
               />
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
-            >
+          <DialogFooter className="mt-6">
+            <Button type="button" variant="outline" onClick={onClose}>
               取消
-            </button>
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="rounded-lg bg-accent text-accent-foreground px-4 py-2 text-sm transition-colors hover:bg-accent/90 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? '保存中...' : isEdit ? '保存' : '创建'}
-            </button>
-          </div>
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
