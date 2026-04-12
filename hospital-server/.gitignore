@@ -15,4 +15,5 @@ coverage.txt
 .DS_Store
 Thumbs.db
 configs/config.local.yaml
+.env
 tmp/

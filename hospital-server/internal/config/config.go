@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/spf13/viper"
 )
 
@@ -61,11 +63,18 @@ func (d *DatabaseConfig) PostgresURL() string {
 
 func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
+
+	// Environment variable support: HIS_DATABASE_HOST → database.host
+	viper.SetEnvPrefix("HIS")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("read config: %w", err)
 	}
+
+	// Explicitly bind nested keys so env vars override yaml values
+	bindEnvs()
 
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
@@ -73,4 +82,19 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func bindEnvs() {
+	keys := []string{
+		"server.port", "server.mode",
+		"database.host", "database.port", "database.user", "database.password",
+		"database.dbname", "database.sslmode", "database.migrations_path",
+		"redis.host", "redis.port", "redis.password", "redis.db",
+		"jwt.secret", "jwt.expire_hour",
+		"minio.endpoint", "minio.access_key", "minio.secret_key",
+		"minio.bucket", "minio.use_ssl",
+	}
+	for _, k := range keys {
+		viper.BindEnv(k)
+	}
 }
