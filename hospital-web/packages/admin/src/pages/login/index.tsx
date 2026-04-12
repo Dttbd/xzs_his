@@ -1,33 +1,42 @@
-import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useAuthStore, ThemeToggle } from '@hospital/shared'
 
+const loginSchema = z.object({
+  username: z.string().min(1, '请输入用户名'),
+  password: z.string().min(1, '请输入密码'),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
 export function LoginPage() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const login = useAuthStore((s) => s.login)
   const navigate = useNavigate()
   const location = useLocation()
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  })
+
+  const onSubmit = async (data: LoginForm) => {
     try {
-      await login(username, password)
+      await login(data.username, data.password)
       navigate(from, { replace: true })
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         (err as Error)?.message ||
         '登录失败'
-      setError(message)
-    } finally {
-      setLoading(false)
+      setError('root', { message })
     }
   }
 
@@ -45,7 +54,7 @@ export function LoginPage() {
           <p className="text-muted-foreground text-sm mt-1">医院信息管理系统</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="username" className="block text-sm text-foreground mb-1.5">
               用户名
@@ -53,13 +62,14 @@ export function LoginPage() {
             <input
               id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               placeholder="请输入用户名"
-              required
+              {...register('username')}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm
                 placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors"
             />
+            {errors.username && (
+              <p className="text-destructive text-xs mt-1">{errors.username.message}</p>
+            )}
           </div>
 
           <div>
@@ -69,26 +79,27 @@ export function LoginPage() {
             <input
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="请输入密码"
-              required
+              {...register('password')}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground text-sm
                 placeholder:text-muted-foreground/50 outline-none focus:border-accent transition-colors"
             />
+            {errors.password && (
+              <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
+            )}
           </div>
 
-          {error && (
-            <p className="text-destructive text-sm">{error}</p>
+          {errors.root && (
+            <p className="text-destructive text-sm">{errors.root.message}</p>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="w-full py-2.5 bg-accent text-accent-foreground rounded-lg text-sm font-medium
               hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            {loading ? '登录中...' : '登录'}
+            {isSubmitting ? '登录中...' : '登录'}
           </button>
         </form>
       </div>

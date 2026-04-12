@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { X } from 'lucide-react'
 import {
@@ -20,17 +23,39 @@ const priorityOptions = [
   { value: 4, label: '紧急' },
 ]
 
+const ticketSchema = z.object({
+  title: z.string().min(1, '请输入工单标题').max(200),
+  description: z.string().optional(),
+  type_id: z.string().optional(),
+  priority: z.number().min(1).max(4),
+  hospital_id: z.string().optional(),
+  assignee_id: z.string().optional(),
+})
+
+type TicketFormData = z.infer<typeof ticketSchema>
+
+const emptyDefaults: TicketFormData = {
+  title: '',
+  description: '',
+  type_id: '',
+  priority: 2,
+  hospital_id: '',
+  assignee_id: '',
+}
+
 export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
   const queryClient = useQueryClient()
 
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [typeId, setTypeId] = useState('')
-  const [priority, setPriority] = useState(2)
-  const [hospitalId, setHospitalId] = useState('')
-  const [assigneeId, setAssigneeId] = useState('')
-  const [hospitalKeyword, setHospitalKeyword] = useState('')
-  const [error, setError] = useState('')
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<TicketFormData>({
+    resolver: zodResolver(ticketSchema),
+    defaultValues: emptyDefaults,
+  })
 
   // Fetch options
   const { data: ticketTypes } = useQuery({
@@ -40,8 +65,8 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
   })
 
   const { data: hospitalsResult } = useQuery({
-    queryKey: ['hospitals-search', hospitalKeyword],
-    queryFn: () => listHospitals({ keyword: hospitalKeyword, page: 1, page_size: 20 }),
+    queryKey: ['hospitals-search', ''],
+    queryFn: () => listHospitals({ keyword: '', page: 1, page_size: 20 }),
     enabled: open,
   })
 
@@ -55,43 +80,28 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
     mutationFn: createTicket,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] })
-      resetForm()
+      reset(emptyDefaults)
       onClose()
     },
     onError: (err: any) => {
-      setError(err?.response?.data?.message || err?.message || '创建失败')
+      setError('root', {
+        message: err?.response?.data?.message || err?.message || '创建失败',
+      })
     },
   })
 
-  function resetForm() {
-    setTitle('')
-    setDescription('')
-    setTypeId('')
-    setPriority(2)
-    setHospitalId('')
-    setAssigneeId('')
-    setHospitalKeyword('')
-    setError('')
-  }
-
   useEffect(() => {
-    if (!open) resetForm()
-  }, [open])
+    if (!open) reset(emptyDefaults)
+  }, [open, reset])
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!title.trim()) {
-      setError('请输入标题')
-      return
-    }
-    setError('')
+  async function onSubmit(formData: TicketFormData) {
     mutation.mutate({
-      title: title.trim(),
-      description: description.trim(),
-      type_id: typeId || undefined,
-      priority,
-      hospital_id: hospitalId || null,
-      assignee_id: assigneeId || null,
+      title: formData.title.trim(),
+      description: formData.description?.trim(),
+      type_id: formData.type_id || undefined,
+      priority: formData.priority,
+      hospital_id: formData.hospital_id || null,
+      assignee_id: formData.assignee_id || null,
     })
   }
 
@@ -114,7 +124,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Title */}
           <div>
             <label className="block text-sm text-foreground mb-1.5">
@@ -122,22 +132,23 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
             </label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               placeholder="请输入工单标题"
               className={inputClass}
+              {...register('title')}
             />
+            {errors.title && (
+              <p className="text-destructive text-xs mt-1">{errors.title.message}</p>
+            )}
           </div>
 
           {/* Description */}
           <div>
             <label className="block text-sm text-foreground mb-1.5">描述</label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
               placeholder="请输入工单描述"
               rows={4}
               className={`${inputClass} resize-none`}
+              {...register('description')}
             />
           </div>
 
@@ -145,11 +156,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-foreground mb-1.5">工单类型</label>
-              <select
-                value={typeId}
-                onChange={(e) => setTypeId(e.target.value)}
-                className={inputClass}
-              >
+              <select className={inputClass} {...register('type_id')}>
                 <option value="">请选择</option>
                 {ticketTypes?.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -160,11 +167,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
             </div>
             <div>
               <label className="block text-sm text-foreground mb-1.5">优先级</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(Number(e.target.value))}
-                className={inputClass}
-              >
+              <select className={inputClass} {...register('priority', { valueAsNumber: true })}>
                 {priorityOptions.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
@@ -177,11 +180,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
           {/* Hospital */}
           <div>
             <label className="block text-sm text-foreground mb-1.5">关联医院</label>
-            <select
-              value={hospitalId}
-              onChange={(e) => setHospitalId(e.target.value)}
-              className={inputClass}
-            >
+            <select className={inputClass} {...register('hospital_id')}>
               <option value="">不关联</option>
               {hospitalsResult?.list?.map((h) => (
                 <option key={h.id} value={h.id}>
@@ -194,11 +193,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
           {/* Assignee */}
           <div>
             <label className="block text-sm text-foreground mb-1.5">处理人</label>
-            <select
-              value={assigneeId}
-              onChange={(e) => setAssigneeId(e.target.value)}
-              className={inputClass}
-            >
+            <select className={inputClass} {...register('assignee_id')}>
               <option value="">暂不指派</option>
               {usersResult?.list?.map((u) => (
                 <option key={u.id} value={u.id}>
@@ -208,7 +203,9 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
             </select>
           </div>
 
-          {error && <p className="text-destructive text-sm">{error}</p>}
+          {errors.root && (
+            <p className="text-destructive text-sm">{errors.root.message}</p>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-2">
@@ -221,7 +218,7 @@ export function TicketCreateDialog({ open, onClose }: TicketCreateDialogProps) {
             </button>
             <button
               type="submit"
-              disabled={mutation.isPending}
+              disabled={isSubmitting || mutation.isPending}
               className="px-4 py-2 text-sm bg-accent text-accent-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
               {mutation.isPending ? '创建中...' : '创建'}

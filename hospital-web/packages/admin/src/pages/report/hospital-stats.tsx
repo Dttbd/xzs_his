@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactECharts from 'echarts-for-react'
-import { getHospitalStats, useThemeContext } from '@hospital/shared'
+import { Download } from 'lucide-react'
+import { getHospitalStats, exportHospitals, useThemeContext } from '@hospital/shared'
 
 const GROUP_OPTIONS = [
   { value: 'province', label: '按省份' },
@@ -29,6 +30,20 @@ export function HospitalStatsPage() {
     queryKey: ['hospital-stats', groupBy, regionId, provinceId],
     queryFn: () => getHospitalStats(params),
   })
+
+  async function handleExport() {
+    try {
+      const blob = await exportHospitals(params)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `医院数据_${new Date().toISOString().slice(0, 10)}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      // silent
+    }
+  }
 
   const axisColor = isDark ? 'rgba(148,163,184,0.4)' : 'rgba(100,116,139,0.4)'
   const labelColor = isDark ? 'rgba(148,163,184,0.7)' : 'rgba(71,85,105,0.8)'
@@ -123,6 +138,15 @@ export function HospitalStatsPage() {
             value={provinceId}
             onChange={(e) => setProvinceId(e.target.value)}
           />
+        </div>
+        <div className="ml-auto">
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm transition-colors hover:bg-background"
+          >
+            <Download size={14} strokeWidth={1.5} />
+            导出 Excel
+          </button>
         </div>
       </div>
 

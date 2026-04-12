@@ -1,4 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   createHospital,
@@ -20,26 +23,32 @@ interface HospitalFormProps {
 
 const LEVELS = ['三甲', '三乙', '二甲', '二乙', '一甲', '其他']
 
-interface FormData {
-  name: string
-  code: string
-  category_id: string
-  level: string
-  province_id: string
-  city: string
-  address: string
-  contact_name: string
-  contact_phone: string
-  contact_email: string
-  bed_count: number
-  department_count: number
-  is_specialized: boolean
-  specialty_type: string
-  owner_user_id: string
-  remark: string
-}
+const hospitalSchema = z.object({
+  name: z.string().min(1, '请输入医院名称').max(200),
+  code: z.string().min(1, '请输入医院编码').max(50),
+  category_id: z.string().optional(),
+  level: z.string().optional(),
+  province_id: z.string().optional(),
+  city: z.string().optional(),
+  address: z.string().optional(),
+  contact_name: z.string().optional(),
+  contact_phone: z.string().optional(),
+  contact_email: z
+    .string()
+    .email('邮箱格式不正确')
+    .optional()
+    .or(z.literal('')),
+  bed_count: z.number().min(0).optional(),
+  department_count: z.number().min(0).optional(),
+  is_specialized: z.boolean().optional(),
+  specialty_type: z.string().optional(),
+  owner_user_id: z.string().optional(),
+  remark: z.string().optional(),
+})
 
-const emptyForm: FormData = {
+type HospitalFormData = z.infer<typeof hospitalSchema>
+
+const emptyDefaults: HospitalFormData = {
   name: '',
   code: '',
   category_id: '',
@@ -63,13 +72,24 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const isEdit = !!hospital
 
-  const [form, setForm] = useState<FormData>(emptyForm)
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<HospitalFormData>({
+    resolver: zodResolver(hospitalSchema),
+    defaultValues: emptyDefaults,
+  })
+
+  const isSpecialized = watch('is_specialized')
 
   useEffect(() => {
     if (open) {
       if (hospital) {
-        setForm({
+        reset({
           name: hospital.name ?? '',
           code: hospital.code ?? '',
           category_id: hospital.category_id ?? '',
@@ -88,11 +108,10 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
           remark: hospital.remark ?? '',
         })
       } else {
-        setForm(emptyForm)
+        reset(emptyDefaults)
       }
-      setErrors({})
     }
-  }, [open, hospital])
+  }, [open, hospital, reset])
 
   useEffect(() => {
     if (!open) return
@@ -131,27 +150,12 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
     },
   })
 
-  function validate(): boolean {
-    const errs: Record<string, string> = {}
-    if (!form.name.trim()) errs.name = '请输入医院名称'
-    if (!form.code.trim()) errs.code = '请输入医院编码'
-    setErrors(errs)
-    return Object.keys(errs).length === 0
-  }
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!validate()) return
-    const payload: Record<string, any> = { ...form }
+  function onSubmit(formData: HospitalFormData) {
+    const payload: Record<string, any> = { ...formData }
     if (!payload.category_id) payload.category_id = null
     if (!payload.province_id) payload.province_id = null
     if (!payload.owner_user_id) payload.owner_user_id = null
     mutation.mutate(payload)
-  }
-
-  function updateField<K extends keyof FormData>(key: K, value: FormData[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }))
-    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
   if (!open) return null
@@ -184,7 +188,7 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Name */}
             <div>
@@ -193,11 +197,10 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               </label>
               <input
                 className={inputClass}
-                value={form.name}
-                onChange={(e) => updateField('name', e.target.value)}
                 placeholder="请输入医院名称"
+                {...register('name')}
               />
-              {errors.name && <p className={errorClass}>{errors.name}</p>}
+              {errors.name && <p className={errorClass}>{errors.name.message}</p>}
             </div>
 
             {/* Code */}
@@ -207,21 +210,16 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               </label>
               <input
                 className={inputClass}
-                value={form.code}
-                onChange={(e) => updateField('code', e.target.value)}
                 placeholder="请输入医院编码"
+                {...register('code')}
               />
-              {errors.code && <p className={errorClass}>{errors.code}</p>}
+              {errors.code && <p className={errorClass}>{errors.code.message}</p>}
             </div>
 
             {/* Category */}
             <div>
               <label className={labelClass}>分类</label>
-              <select
-                className={selectClass}
-                value={form.category_id}
-                onChange={(e) => updateField('category_id', e.target.value)}
-              >
+              <select className={selectClass} {...register('category_id')}>
                 <option value="">请选择分类</option>
                 {categories.map((c: HospitalCategory) => (
                   <option key={c.id} value={c.id}>
@@ -234,11 +232,7 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
             {/* Level */}
             <div>
               <label className={labelClass}>等级</label>
-              <select
-                className={selectClass}
-                value={form.level}
-                onChange={(e) => updateField('level', e.target.value)}
-              >
+              <select className={selectClass} {...register('level')}>
                 <option value="">请选择等级</option>
                 {LEVELS.map((l) => (
                   <option key={l} value={l}>
@@ -251,11 +245,7 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
             {/* Province */}
             <div>
               <label className={labelClass}>省份</label>
-              <select
-                className={selectClass}
-                value={form.province_id}
-                onChange={(e) => updateField('province_id', e.target.value)}
-              >
+              <select className={selectClass} {...register('province_id')}>
                 <option value="">请选择省份</option>
                 {provinces.map((p: Province) => (
                   <option key={p.id} value={p.id}>
@@ -270,9 +260,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <label className={labelClass}>城市</label>
               <input
                 className={inputClass}
-                value={form.city}
-                onChange={(e) => updateField('city', e.target.value)}
                 placeholder="请输入城市"
+                {...register('city')}
               />
             </div>
 
@@ -281,9 +270,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <label className={labelClass}>地址</label>
               <input
                 className={inputClass}
-                value={form.address}
-                onChange={(e) => updateField('address', e.target.value)}
                 placeholder="请输入详细地址"
+                {...register('address')}
               />
             </div>
 
@@ -292,9 +280,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <label className={labelClass}>联系人</label>
               <input
                 className={inputClass}
-                value={form.contact_name}
-                onChange={(e) => updateField('contact_name', e.target.value)}
                 placeholder="请输入联系人姓名"
+                {...register('contact_name')}
               />
             </div>
 
@@ -303,9 +290,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <label className={labelClass}>联系电话</label>
               <input
                 className={inputClass}
-                value={form.contact_phone}
-                onChange={(e) => updateField('contact_phone', e.target.value)}
                 placeholder="请输入联系电话"
+                {...register('contact_phone')}
               />
             </div>
 
@@ -315,20 +301,18 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <input
                 className={inputClass}
                 type="email"
-                value={form.contact_email}
-                onChange={(e) => updateField('contact_email', e.target.value)}
                 placeholder="请输入联系邮箱"
+                {...register('contact_email')}
               />
+              {errors.contact_email && (
+                <p className={errorClass}>{errors.contact_email.message}</p>
+              )}
             </div>
 
             {/* Owner */}
             <div>
               <label className={labelClass}>负责人</label>
-              <select
-                className={selectClass}
-                value={form.owner_user_id}
-                onChange={(e) => updateField('owner_user_id', e.target.value)}
-              >
+              <select className={selectClass} {...register('owner_user_id')}>
                 <option value="">请选择负责人</option>
                 {users.map((u: any) => (
                   <option key={u.id} value={u.id}>
@@ -345,9 +329,11 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
                 className={inputClass}
                 type="number"
                 min={0}
-                value={form.bed_count}
-                onChange={(e) => updateField('bed_count', Number(e.target.value))}
+                {...register('bed_count', { valueAsNumber: true })}
               />
+              {errors.bed_count && (
+                <p className={errorClass}>{errors.bed_count.message}</p>
+              )}
             </div>
 
             {/* Department Count */}
@@ -357,38 +343,45 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
                 className={inputClass}
                 type="number"
                 min={0}
-                value={form.department_count}
-                onChange={(e) => updateField('department_count', Number(e.target.value))}
+                {...register('department_count', { valueAsNumber: true })}
               />
+              {errors.department_count && (
+                <p className={errorClass}>{errors.department_count.message}</p>
+              )}
             </div>
 
             {/* Is Specialized */}
             <div className="flex items-center gap-3">
               <label className="text-sm font-medium text-foreground">专科医院</label>
-              <button
-                type="button"
-                onClick={() => updateField('is_specialized', !form.is_specialized)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                  form.is_specialized ? 'bg-accent' : 'bg-border'
-                }`}
-              >
-                <span
-                  className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-                    form.is_specialized ? 'translate-x-4.5' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
+              <Controller
+                name="is_specialized"
+                control={control}
+                render={({ field }) => (
+                  <button
+                    type="button"
+                    onClick={() => field.onChange(!field.value)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      field.value ? 'bg-accent' : 'bg-border'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                        field.value ? 'translate-x-4.5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                )}
+              />
             </div>
 
             {/* Specialty Type */}
-            {form.is_specialized && (
+            {isSpecialized && (
               <div>
                 <label className={labelClass}>专科类型</label>
                 <input
                   className={inputClass}
-                  value={form.specialty_type}
-                  onChange={(e) => updateField('specialty_type', e.target.value)}
                   placeholder="请输入专科类型"
+                  {...register('specialty_type')}
                 />
               </div>
             )}
@@ -399,9 +392,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
               <textarea
                 className={`${inputClass} resize-none`}
                 rows={3}
-                value={form.remark}
-                onChange={(e) => updateField('remark', e.target.value)}
                 placeholder="请输入备注信息"
+                {...register('remark')}
               />
             </div>
           </div>
