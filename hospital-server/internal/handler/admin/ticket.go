@@ -20,6 +20,15 @@ func NewTicketHandler(svc *service.TicketService) *TicketHandler {
 	return &TicketHandler{svc: svc}
 }
 
+// ListTickets godoc
+// @Summary      工单列表
+// @Tags         tickets
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page       query     int     false  "页码"
+// @Param        page_size  query     int     false  "每页数量"
+// @Success      200        {object}  dto.Response{data=dto.PageResult}
+// @Router       /api/admin/v1/tickets [get]
 func (h *TicketHandler) ListTickets(c *gin.Context) {
 	var q dto.TicketFilterQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
@@ -36,6 +45,14 @@ func (h *TicketHandler) ListTickets(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.PageOK(tickets, total, q.Page, q.PageSize))
 }
 
+// GetTicket godoc
+// @Summary      获取工单
+// @Tags         tickets
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "工单 ID"
+// @Success      200  {object}  dto.Response
+// @Router       /api/admin/v1/tickets/{id} [get]
 func (h *TicketHandler) GetTicket(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -52,6 +69,15 @@ func (h *TicketHandler) GetTicket(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(ticket))
 }
 
+// CreateTicket godoc
+// @Summary      创建工单
+// @Tags         tickets
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.CreateTicketReq  true  "工单信息"
+// @Success      201   {object}  dto.Response
+// @Router       /api/admin/v1/tickets [post]
 func (h *TicketHandler) CreateTicket(c *gin.Context) {
 	var req dto.CreateTicketReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,6 +101,16 @@ func (h *TicketHandler) CreateTicket(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.OK(ticket))
 }
 
+// TransitionTicket godoc
+// @Summary      工单状态流转
+// @Tags         tickets
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string                   true  "工单 ID"
+// @Param        body  body      dto.TransitionTicketReq  true  "流转信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/admin/v1/tickets/{id}/transition [put]
 func (h *TicketHandler) TransitionTicket(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -104,6 +140,16 @@ func (h *TicketHandler) TransitionTicket(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(ticket))
 }
 
+// AssignTicket godoc
+// @Summary      工单派单
+// @Tags         tickets
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string               true  "工单 ID"
+// @Param        body  body      dto.AssignTicketReq  true  "派单信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/admin/v1/tickets/{id}/assign [put]
 func (h *TicketHandler) AssignTicket(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -133,6 +179,16 @@ func (h *TicketHandler) AssignTicket(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(ticket))
 }
 
+// AddComment godoc
+// @Summary      添加评论
+// @Tags         tickets
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string                true  "工单 ID"
+// @Param        body  body      dto.CreateCommentReq  true  "评论内容"
+// @Success      201   {object}  dto.Response
+// @Router       /api/admin/v1/tickets/{id}/comments [post]
 func (h *TicketHandler) AddComment(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

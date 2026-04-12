@@ -1,3 +1,13 @@
+// @title           HIS API
+// @version         1.0
+// @description     医院信息系统 API
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT Bearer token (format: Bearer {token})
+
 package main
 
 import (

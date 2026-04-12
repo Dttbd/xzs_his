@@ -1,0 +1,914 @@
+basePath: /
+definitions:
+  dto.AssignTicketReq:
+    properties:
+      assignee_id:
+        type: string
+    required:
+    - assignee_id
+    type: object
+  dto.CreateCommentReq:
+    properties:
+      content:
+        type: string
+      is_internal:
+        type: boolean
+    required:
+    - content
+    type: object
+  dto.CreateHospitalReq:
+    properties:
+      address:
+        type: string
+      bed_count:
+        type: integer
+      category_id:
+        type: string
+      city:
+        type: string
+      code:
+        maxLength: 50
+        type: string
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
+      department_count:
+        type: integer
+      fields:
+        additionalProperties:
+          type: string
+        description: dynamic field key->value
+        type: object
+      is_specialized:
+        type: boolean
+      level:
+        type: string
+      name:
+        maxLength: 200
+        type: string
+      owner_user_id:
+        type: string
+      province_id:
+        type: string
+      remark:
+        type: string
+      specialty_type:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  dto.CreateTicketReq:
+    properties:
+      assignee_id:
+        type: string
+      description:
+        type: string
+      hospital_id:
+        type: string
+      priority:
+        type: integer
+      title:
+        maxLength: 200
+        type: string
+      type_id:
+        type: string
+    required:
+    - title
+    - type_id
+    type: object
+  dto.CreateUserReq:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      province_id:
+        type: string
+      real_name:
+        maxLength: 100
+        type: string
+      region_id:
+        type: string
+      role_ids:
+        items:
+          type: string
+        type: array
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - password
+    - real_name
+    - username
+    type: object
+  dto.LoginReq:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dto.LoginResp:
+    properties:
+      expires_in:
+        type: integer
+      token:
+        type: string
+      user: {}
+    type: object
+  dto.PageResult:
+    properties:
+      list: {}
+      page:
+        type: integer
+      page_size:
+        type: integer
+      total:
+        type: integer
+    type: object
+  dto.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  dto.SetUserRolesReq:
+    properties:
+      role_ids:
+        items:
+          type: string
+        type: array
+    required:
+    - role_ids
+    type: object
+  dto.TransitionTicketReq:
+    properties:
+      to_status_id:
+        type: string
+    required:
+    - to_status_id
+    type: object
+  dto.UpdateHospitalReq:
+    properties:
+      address:
+        type: string
+      bed_count:
+        type: integer
+      category_id:
+        type: string
+      city:
+        type: string
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
+      department_count:
+        type: integer
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+      is_specialized:
+        type: boolean
+      level:
+        type: string
+      name:
+        type: string
+      owner_user_id:
+        type: string
+      province_id:
+        type: string
+      remark:
+        type: string
+      specialty_type:
+        type: string
+      status:
+        type: integer
+    type: object
+  dto.UpdateUserReq:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        maxLength: 255
+        type: string
+      phone:
+        maxLength: 20
+        type: string
+      province_id:
+        type: string
+      real_name:
+        maxLength: 100
+        type: string
+      region_id:
+        type: string
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    type: object
+  portal.UpdateProfileReq:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      real_name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 医院信息系统 API
+  title: HIS API
+  version: "1.0"
+paths:
+  /api/admin/v1/auth/refresh:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 刷新 Token
+      tags:
+      - auth
+  /api/admin/v1/hospitals:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PageResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 医院列表
+      tags:
+      - hospitals
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 医院信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateHospitalReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 新建医院
+      tags:
+      - hospitals
+  /api/admin/v1/hospitals/{id}:
+    delete:
+      parameters:
+      - description: 医院 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除医院
+      tags:
+      - hospitals
+    get:
+      parameters:
+      - description: 医院 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取医院
+      tags:
+      - hospitals
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 医院 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 医院信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateHospitalReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新医院
+      tags:
+      - hospitals
+  /api/admin/v1/tickets:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PageResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 工单列表
+      tags:
+      - tickets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTicketReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建工单
+      tags:
+      - tickets
+  /api/admin/v1/tickets/{id}:
+    get:
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取工单
+      tags:
+      - tickets
+  /api/admin/v1/tickets/{id}/assign:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 派单信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AssignTicketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 工单派单
+      tags:
+      - tickets
+  /api/admin/v1/tickets/{id}/comments:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 评论内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCommentReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 添加评论
+      tags:
+      - tickets
+  /api/admin/v1/tickets/{id}/transition:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 流转信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TransitionTicketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 工单状态流转
+      tags:
+      - tickets
+  /api/admin/v1/users:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PageResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 用户列表
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建用户
+      tags:
+      - users
+  /api/admin/v1/users/{id}:
+    delete:
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除用户
+      tags:
+      - users
+    get:
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取用户
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 用户信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新用户
+      tags:
+      - users
+  /api/admin/v1/users/{id}/roles:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 角色列表
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SetUserRolesReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 设置用户角色
+      tags:
+      - users
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 登录信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResp'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 用户登录
+      tags:
+      - auth
+  /api/auth/logout:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 用户登出
+      tags:
+      - auth
+  /api/portal/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 登录信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResp'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.Response'
+      summary: 门户登录
+      tags:
+      - portal-auth
+  /api/portal/v1/auth/refresh:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.LoginResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 刷新 Token（门户）
+      tags:
+      - portal-auth
+  /api/portal/v1/profile:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取个人资料
+      tags:
+      - portal-profile
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 资料信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/portal.UpdateProfileReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新个人资料
+      tags:
+      - portal-profile
+  /api/portal/v1/tickets:
+    get:
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/dto.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PageResult'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 门户工单列表
+      tags:
+      - portal-tickets
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTicketReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 门户创建工单
+      tags:
+      - portal-tickets
+  /api/portal/v1/tickets/{id}:
+    get:
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 门户获取工单
+      tags:
+      - portal-tickets
+  /api/portal/v1/tickets/{id}/comments:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工单 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 评论内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCommentReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Response'
+      security:
+      - BearerAuth: []
+      summary: 门户添加评论
+      tags:
+      - portal-tickets
+securityDefinitions:
+  BearerAuth:
+    description: 'JWT Bearer token (format: Bearer {token})'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

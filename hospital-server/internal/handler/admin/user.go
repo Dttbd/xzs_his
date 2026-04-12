@@ -17,6 +17,15 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 	return &UserHandler{svc: svc}
 }
 
+// List godoc
+// @Summary      用户列表
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page       query     int     false  "页码"
+// @Param        page_size  query     int     false  "每页数量"
+// @Success      200        {object}  dto.Response{data=dto.PageResult}
+// @Router       /api/admin/v1/users [get]
 func (h *UserHandler) List(c *gin.Context) {
 	var q dto.PageQuery
 	if err := c.ShouldBindQuery(&q); err != nil {
@@ -33,6 +42,14 @@ func (h *UserHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.PageOK(users, total, q.Page, q.PageSize))
 }
 
+// Get godoc
+// @Summary      获取用户
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "用户 ID"
+// @Success      200  {object}  dto.Response
+// @Router       /api/admin/v1/users/{id} [get]
 func (h *UserHandler) Get(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -49,6 +66,15 @@ func (h *UserHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(user))
 }
 
+// Create godoc
+// @Summary      创建用户
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      dto.CreateUserReq  true  "用户信息"
+// @Success      201   {object}  dto.Response
+// @Router       /api/admin/v1/users [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var req dto.CreateUserReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,6 +91,16 @@ func (h *UserHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.OK(user))
 }
 
+// Update godoc
+// @Summary      更新用户
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string             true  "用户 ID"
+// @Param        body  body      dto.UpdateUserReq  true  "用户信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/admin/v1/users/{id} [put]
 func (h *UserHandler) Update(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -87,6 +123,14 @@ func (h *UserHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(user))
 }
 
+// Delete godoc
+// @Summary      删除用户
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      string  true  "用户 ID"
+// @Success      200  {object}  dto.Response
+// @Router       /api/admin/v1/users/{id} [delete]
 func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
@@ -102,6 +146,16 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OKMsg("deleted"))
 }
 
+// SetRoles godoc
+// @Summary      设置用户角色
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      string               true  "用户 ID"
+// @Param        body  body      dto.SetUserRolesReq  true  "角色列表"
+// @Success      200   {object}  dto.Response
+// @Router       /api/admin/v1/users/{id}/roles [put]
 func (h *UserHandler) SetRoles(c *gin.Context) {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {

@@ -25,6 +25,13 @@ func NewProfileHandler(userRepo *repository.UserRepo) *ProfileHandler {
 	return &ProfileHandler{userRepo: userRepo}
 }
 
+// GetProfile godoc
+// @Summary      获取个人资料
+// @Tags         portal-profile
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  dto.Response
+// @Router       /api/portal/v1/profile [get]
 func (h *ProfileHandler) GetProfile(c *gin.Context) {
 	userID, ok := c.Get(middleware.CtxUserID)
 	if !ok {
@@ -42,6 +49,15 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(user))
 }
 
+// UpdateProfile godoc
+// @Summary      更新个人资料
+// @Tags         portal-profile
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      UpdateProfileReq  true  "资料信息"
+// @Success      200   {object}  dto.Response
+// @Router       /api/portal/v1/profile [put]
 func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 	userID, ok := c.Get(middleware.CtxUserID)
 	if !ok {

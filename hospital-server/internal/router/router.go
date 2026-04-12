@@ -10,7 +10,11 @@ import (
 	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/dttbd/hospital-server/pkg/storage"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
+
+	_ "github.com/dttbd/hospital-server/docs/swagger"
 )
 
 func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int, asynqClient *queue.Client) {
@@ -55,6 +59,9 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+
+	// Swagger UI
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Auth routes (no auth required)
 	authGroup := r.Group("/api/auth")

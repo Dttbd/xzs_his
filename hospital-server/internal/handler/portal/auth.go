@@ -18,6 +18,15 @@ func NewAuthHandler(svc *service.AuthService) *AuthHandler {
 	return &AuthHandler{svc: svc}
 }
 
+// Login godoc
+// @Summary      门户登录
+// @Tags         portal-auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      dto.LoginReq  true  "登录信息"
+// @Success      200   {object}  dto.Response{data=dto.LoginResp}
+// @Failure      401   {object}  dto.Response
+// @Router       /api/portal/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -32,6 +41,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.OK(resp))
 }
 
+// Refresh godoc
+// @Summary      刷新 Token（门户）
+// @Tags         portal-auth
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  dto.Response{data=dto.LoginResp}
+// @Router       /api/portal/v1/auth/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	userID := c.MustGet(middleware.CtxUserID).(uuid.UUID)
 	username := c.MustGet(middleware.CtxUsername).(string)
