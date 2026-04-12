@@ -79,11 +79,8 @@ type envVar struct {
 
 // All environment variables used by the application, declared in one place.
 var envVars = []envVar{
-	// Required
 	{Key: "DATABASE_URL", Required: true, Desc: "postgres://user:pass@host:5432/dbname?sslmode=disable"},
 	{Key: "JWT_SECRET", Required: true, Desc: "signing key for JWT tokens"},
-
-	// Optional
 	{Key: "REDIS_URL", Required: true, Desc: "redis://:pass@host:6379/0"},
 	{Key: "MINIO_URL", Required: true, Desc: "minio://key:secret@host:9000/bucket"},
 	{Key: "PORT", Default: "8080", Desc: "server port"},
@@ -91,53 +88,65 @@ var envVars = []envVar{
 	{Key: "JWT_EXPIRE_HOUR", Default: "24", Desc: "token expiry in hours"},
 }
 
-// Load reads environment variables (auto-loads .env if present) and returns Config.
-func Load() (*Config, error) {
-	// Auto-load .env if present
+// loadEnvVars validates all required vars and returns a map of key→value.
+// Missing required vars cause an error with full usage info.
+func loadEnvVars() (map[string]string, error) {
 	_ = godotenv.Load()
 
-	// Validate required env vars
+	vals := make(map[string]string, len(envVars))
 	var missing []string
+
 	for _, v := range envVars {
-		if v.Required && os.Getenv(v.Key) == "" {
-			missing = append(missing, v.Key)
+		val := os.Getenv(v.Key)
+		if val == "" {
+			if v.Required {
+				missing = append(missing, v.Key)
+			} else {
+				val = v.Default
+			}
 		}
+		vals[v.Key] = val
 	}
+
 	if len(missing) > 0 {
 		return nil, fmt.Errorf("missing required environment variables: %s\n\nAll env vars:\n%s",
 			strings.Join(missing, ", "), envVarUsage())
 	}
 
-	// Read values
-	databaseURL := os.Getenv("DATABASE_URL")
-	jwtSecret := os.Getenv("JWT_SECRET")
-	redisURL := os.Getenv("REDIS_URL")
-	minioURL := os.Getenv("MINIO_URL")
-	port := envInt("PORT", 8080)
-	mode := envStr("SERVER_MODE", "debug")
-	expireHour := envInt("JWT_EXPIRE_HOUR", 24)
+	return vals, nil
+}
 
-	// --- Parse ---
-	dbCfg, err := parseDatabaseURL(databaseURL)
+// Load reads environment variables (auto-loads .env if present) and returns Config.
+func Load() (*Config, error) {
+	env, err := loadEnvVars()
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse URL-style vars
+	dbCfg, err := parseDatabaseURL(env["DATABASE_URL"])
 	if err != nil {
 		return nil, fmt.Errorf("invalid DATABASE_URL: %w", err)
 	}
 
-	redisCfg, err := parseRedisURL(redisURL)
+	redisCfg, err := parseRedisURL(env["REDIS_URL"])
 	if err != nil {
 		return nil, fmt.Errorf("invalid REDIS_URL: %w", err)
 	}
 
-	minioCfg, err := parseMinIOURL(minioURL)
+	minioCfg, err := parseMinIOURL(env["MINIO_URL"])
 	if err != nil {
 		return nil, fmt.Errorf("invalid MINIO_URL: %w", err)
 	}
 
+	port, _ := strconv.Atoi(env["PORT"])
+	expireHour, _ := strconv.Atoi(env["JWT_EXPIRE_HOUR"])
+
 	return &Config{
-		Server:   ServerConfig{Port: port, Mode: mode},
+		Server:   ServerConfig{Port: port, Mode: env["SERVER_MODE"]},
 		Database: *dbCfg,
 		Redis:    *redisCfg,
-		JWT:      JWTConfig{Secret: jwtSecret, ExpireHour: expireHour},
+		JWT:      JWTConfig{Secret: env["JWT_SECRET"], ExpireHour: expireHour},
 		MinIO:    *minioCfg,
 	}, nil
 }
@@ -262,18 +271,3 @@ func envVarUsage() string {
 	return b.String()
 }
 
-func envStr(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
-func envInt(key string, fallback int) int {
-	if v := os.Getenv(key); v != "" {
-		if i, err := strconv.Atoi(v); err == nil {
-			return i
-		}
-	}
-	return fallback
-}
