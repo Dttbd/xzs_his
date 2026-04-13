@@ -54,8 +54,8 @@ export async function changePassword(body: { old_password: string; new_password:
 // --- Role CRUD ---
 
 export async function listRoles(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<Role[]>>('/api/admin/v1/roles', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<Role>>>('/api/admin/v1/roles', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createRole(payload: Partial<Role>) {

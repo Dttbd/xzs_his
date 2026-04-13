@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './types'
+import type { ApiResponse, PageResult } from './types'
 
 // --- Types ---
 
@@ -29,8 +29,8 @@ export interface Province {
 // --- Region CRUD ---
 
 export async function listRegions(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<Region[]>>('/api/admin/v1/regions', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<Region>>>('/api/admin/v1/regions', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createRegion(payload: Partial<Region>) {
@@ -50,8 +50,8 @@ export async function deleteRegion(id: string) {
 // --- Province CRUD ---
 
 export async function listProvinces(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<Province[]>>('/api/admin/v1/provinces', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<Province>>>('/api/admin/v1/provinces', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createProvince(payload: Partial<Province>) {

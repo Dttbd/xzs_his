@@ -132,8 +132,8 @@ export function HospitalForm({ open, onClose, hospital }: HospitalFormProps) {
   })
 
   const { data: usersPage } = useQuery({
-    queryKey: ['users', { page_size: 200 }],
-    queryFn: () => listUsers({ page_size: 200 }),
+    queryKey: ['users', { page_size: 100 }],
+    queryFn: () => listUsers({ page_size: 100 }),
     enabled: open,
   })
   const users = usersPage?.list ?? []

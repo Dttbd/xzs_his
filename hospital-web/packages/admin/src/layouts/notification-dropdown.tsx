@@ -76,7 +76,7 @@ export function NotificationDropdown({ onClose }: NotificationDropdownProps) {
   return (
     <div
       ref={ref}
-      className="absolute top-full right-0 mt-2 w-80 rounded-xl border border-border bg-card z-50 overflow-hidden"
+      className="fixed inset-x-3 top-[56px] sm:inset-x-auto sm:absolute sm:top-full sm:right-0 sm:mt-2 sm:w-80 rounded-xl border border-border bg-card z-50 overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">

@@ -38,3 +38,5 @@ export {
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
 export { Separator } from './separator'
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './tooltip'
+export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor } from './popover'
+export { DatePicker } from './date-picker'

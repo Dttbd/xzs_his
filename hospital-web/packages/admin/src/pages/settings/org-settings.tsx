@@ -95,8 +95,8 @@ export function OrgSettings() {
   })
 
   const { data: usersPage } = useQuery({
-    queryKey: ['users', { page_size: 200 }],
-    queryFn: () => listUsers({ page_size: 200 }),
+    queryKey: ['users', { page_size: 100 }],
+    queryFn: () => listUsers({ page_size: 100 }),
   })
   const users = usersPage?.list ?? []
 
@@ -165,9 +165,7 @@ export function OrgSettings() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-foreground">大区管理</h3>
           <Button
-            variant="ghost"
             size="sm"
-            className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
             onClick={() => {
               setAddingRegion(true)
               setNewRegionName('')

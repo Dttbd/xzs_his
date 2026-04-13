@@ -120,12 +120,7 @@ function TicketTypesSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">工单类型</h4>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
-          onClick={openCreate}
-        >
+        <Button size="sm" onClick={openCreate}>
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
         </Button>
@@ -285,12 +280,7 @@ function TicketStatusesSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">工单状态</h4>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
-          onClick={openCreate}
-        >
+        <Button size="sm" onClick={openCreate}>
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
         </Button>
@@ -491,12 +481,7 @@ function TicketTransitionsSection() {
     <>
       <div className="flex items-center justify-between mb-3">
         <h4 className="text-sm font-medium text-foreground">流转规则</h4>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto px-2.5 py-1 text-xs text-accent hover:bg-accent/10"
-          onClick={openCreate}
-        >
+        <Button size="sm" onClick={openCreate}>
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
           新增
         </Button>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactECharts from 'echarts-for-react'
-import { getSalesStats, useThemeContext, Input } from '@hospital/shared'
+import { getSalesStats, useThemeContext, Input, DatePicker } from '@hospital/shared'
 
 export function SalesStatsPage() {
   const { resolvedTheme } = useThemeContext()
@@ -117,20 +117,18 @@ export function SalesStatsPage() {
       <div className="bg-card border border-border rounded-xl p-4 flex flex-wrap gap-3 items-end">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">开始日期</label>
-          <Input
-            type="date"
+          <DatePicker
             className="w-40"
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
+            onChange={setDateFrom}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">结束日期</label>
-          <Input
-            type="date"
+          <DatePicker
             className="w-40"
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
+            onChange={setDateTo}
           />
         </div>
         <div className="flex flex-col gap-1">

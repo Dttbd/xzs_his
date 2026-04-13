@@ -150,8 +150,8 @@ export async function addAttachment(ticketId: string, file: File) {
 // --- Ticket Type CRUD ---
 
 export async function listTicketTypes(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<TicketType[]>>('/api/admin/v1/ticket-types', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<TicketType>>>('/api/admin/v1/ticket-types', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createTicketType(payload: Partial<TicketType>) {
@@ -171,8 +171,8 @@ export async function deleteTicketType(id: string) {
 // --- Ticket Status CRUD ---
 
 export async function listTicketStatuses(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<TicketStatus[]>>('/api/admin/v1/ticket-statuses', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<TicketStatus>>>('/api/admin/v1/ticket-statuses', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createTicketStatus(payload: Partial<TicketStatus>) {
@@ -192,8 +192,8 @@ export async function deleteTicketStatus(id: string) {
 // --- Ticket Transition CRUD ---
 
 export async function listTransitions(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<TicketTransition[]>>('/api/admin/v1/ticket-transitions', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<TicketTransition>>>('/api/admin/v1/ticket-transitions', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createTransition(payload: Partial<TicketTransition>) {

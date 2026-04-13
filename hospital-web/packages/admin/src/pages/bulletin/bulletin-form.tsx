@@ -22,6 +22,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  DatePicker,
 } from '@hospital/shared'
 
 interface BulletinFormProps {
@@ -241,11 +242,10 @@ export function BulletinForm({ open, onClose, bulletin }: BulletinFormProps) {
             {/* Expires At */}
             <div>
               <Label>过期时间</Label>
-              <Input
-                type="date"
+              <DatePicker
                 className="mt-1"
                 value={form.expires_at}
-                onChange={(e) => updateField('expires_at', e.target.value)}
+                onChange={(v) => updateField('expires_at', v)}
               />
             </div>
           </div>

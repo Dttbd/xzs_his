@@ -24,17 +24,23 @@ type: project
 ## 当前代码统计
 
 - 后端 Go 代码: 71 个文件
-- 前端 React/TS 代码: 71 个文件, shared/admin/portal 三个包
-- 54 个 git commits
-- 15 个集成测试 + 4 个单元测试，全部通过
+- 前端 React/TS 代码: 75+ 个文件, shared/admin/portal 三个包
 - Asynq 异步任务 worker（独立进程）
-- Admin SPA: 1.66MB JS (含ECharts, gzip 521KB)
-- Portal SPA: 357KB JS (gzip 115KB)
 - Docker Compose: PostgreSQL 16 + Redis 7 + MinIO
+- 共享 UI 组件库: 17 个 shadcn/ui 风格组件（含 Popover、DatePicker）
+
+## 近期改动（2026-04-13）
+
+- 修复前端 API 分页数据类型不匹配（8 个函数）
+- 登录页重设计（左右分栏布局，admin + portal）
+- 侧边栏可收起/展开
+- 自定义 DatePicker 替换原生日期输入
+- 公告支持 scope_type="all" 全局发布
+- 手机端弹窗/通知间距优化
 
 ## How to apply
 
-- 6 阶段全部完成，进入查漏补缺阶段
-- 高优先级：Portal 后端 API → 企微 SSO → 企微消息推送
-- 中优先级：Swagger 文档、数据库迁移脚本、报表导出、表单验证
+- 6 阶段全部完成，进入测试和 bug 修复阶段
+- 高优先级：企微 SSO → 企微消息推送（需凭证）
+- 低优先级：前端测试、Nginx 配置、PDF 导出
 - 详见 remaining_work.md

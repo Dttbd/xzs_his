@@ -7,6 +7,8 @@ import {
   BarChart3,
   Users,
   Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react'
 import { cn } from '@hospital/shared'
 
@@ -20,19 +22,29 @@ const navItems = [
   { to: '/settings', icon: Settings, label: '系统设置' },
 ]
 
-export function Sidebar({ className = '' }: { className?: string }) {
+export const SIDEBAR_WIDTH = 220
+export const SIDEBAR_COLLAPSED_WIDTH = 64
+
+interface SidebarProps {
+  collapsed?: boolean
+  onToggleCollapse?: () => void
+  className?: string
+}
+
+export function Sidebar({ collapsed = false, onToggleCollapse, className = '' }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 h-screen bg-card border-r border-border flex flex-col z-30 w-16 lg:w-[220px]',
+        'fixed top-0 left-0 h-screen bg-card border-r border-border flex flex-col z-30 transition-[width] duration-200',
+        collapsed ? 'w-16' : 'w-[220px]',
         className,
       )}
     >
       {/* Logo */}
-      <div className="h-[52px] flex items-center px-4 lg:px-5 border-b border-border">
-        <span className="text-accent font-bold text-lg">
-          <span className="inline">&#9670;</span>
-          <span className="hidden lg:inline ml-1.5">HIS</span>
+      <div className="h-[52px] flex items-center px-4 border-b border-border overflow-hidden">
+        <span className="text-accent font-bold text-lg whitespace-nowrap">
+          <span>&#9670;</span>
+          {!collapsed && <span className="ml-1.5">HIS</span>}
         </span>
       </div>
 
@@ -43,9 +55,11 @@ export function Sidebar({ className = '' }: { className?: string }) {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 px-4 lg:px-5 py-2.5 mx-2 rounded-lg transition-colors border-l-2',
+                'flex items-center gap-3 py-2.5 mx-2 rounded-lg transition-colors border-l-2',
+                collapsed ? 'justify-center px-0' : 'px-4',
                 isActive
                   ? 'text-accent bg-accent/10 border-accent'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/5 border-transparent',
@@ -53,10 +67,29 @@ export function Sidebar({ className = '' }: { className?: string }) {
             }
           >
             <item.icon size={20} strokeWidth={1.5} className="shrink-0" />
-            <span className="hidden lg:inline text-sm">{item.label}</span>
+            {!collapsed && <span className="text-sm">{item.label}</span>}
           </NavLink>
         ))}
       </nav>
+
+      {/* Collapse toggle */}
+      {onToggleCollapse && (
+        <div className="border-t border-border p-2">
+          <button
+            onClick={onToggleCollapse}
+            className={cn(
+              'flex items-center gap-3 w-full py-2.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/5 transition-colors',
+              collapsed ? 'justify-center px-0' : 'px-4',
+            )}
+            title={collapsed ? '展开侧栏' : '收起侧栏'}
+          >
+            {collapsed
+              ? <PanelLeftOpen size={20} strokeWidth={1.5} className="shrink-0" />
+              : <PanelLeftClose size={20} strokeWidth={1.5} className="shrink-0" />}
+            {!collapsed && <span className="text-sm">收起侧栏</span>}
+          </button>
+        </div>
+      )}
     </aside>
   )
 }

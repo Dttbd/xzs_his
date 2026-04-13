@@ -41,17 +41,16 @@ func (r *BulletinRepo) List(q *dto.BulletinFilterQuery) ([]models.Bulletin, int6
 	}
 
 	// Scope-based visibility filters (portal use):
-	// RegionID: show region-scoped bulletins for that specific region
+	// RegionID: show all-scoped + region-scoped bulletins for that specific region
 	if q.RegionID != nil && q.ProvinceID == nil {
-		query = query.Where("scope_type = 'region' AND scope_id = ?", *q.RegionID)
+		query = query.Where("scope_type = 'all' OR (scope_type = 'region' AND scope_id = ?)", *q.RegionID)
 	}
 
-	// ProvinceID: show province-scoped bulletins for that province
+	// ProvinceID: show all-scoped + province-scoped bulletins for that province
 	// plus region-scoped bulletins for its parent region.
-	// To find the parent region, we do a subquery on the provinces table.
 	if q.ProvinceID != nil {
 		query = query.Where(
-			"(scope_type = 'province' AND scope_id = ?) OR "+
+			"scope_type = 'all' OR (scope_type = 'province' AND scope_id = ?) OR "+
 				"(scope_type = 'region' AND scope_id = (SELECT region_id FROM provinces WHERE id = ? AND deleted_at IS NULL))",
 			*q.ProvinceID, *q.ProvinceID,
 		)

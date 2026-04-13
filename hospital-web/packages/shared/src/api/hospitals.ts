@@ -104,8 +104,8 @@ export async function exportHospitals(params?: Record<string, any>) {
 // --- Category CRUD ---
 
 export async function listCategories(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<HospitalCategory[]>>('/api/admin/v1/hospital-categories', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<HospitalCategory>>>('/api/admin/v1/hospital-categories', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createCategory(payload: Partial<HospitalCategory>) {
@@ -125,8 +125,8 @@ export async function deleteCategory(id: string) {
 // --- Field Definition CRUD ---
 
 export async function listFieldDefinitions(params?: Record<string, any>) {
-  const { data } = await apiClient.get<ApiResponse<FieldDefinition[]>>('/api/admin/v1/field-definitions', { params })
-  return data.data!
+  const { data } = await apiClient.get<ApiResponse<PageResult<FieldDefinition>>>('/api/admin/v1/field-definitions', { params: { page_size: 100, ...params } })
+  return data.data!.list
 }
 
 export async function createFieldDefinition(payload: Partial<FieldDefinition>) {

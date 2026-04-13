@@ -9,8 +9,8 @@ import (
 type CreateBulletinReq struct {
 	Title     string     `json:"title" binding:"required,max=200"`
 	Content   string     `json:"content" binding:"required"`
-	ScopeType string     `json:"scope_type" binding:"required,oneof=region province"`
-	ScopeID   uuid.UUID  `json:"scope_id" binding:"required"`
+	ScopeType string     `json:"scope_type" binding:"required,oneof=all region province"`
+	ScopeID   *uuid.UUID `json:"scope_id"`
 	IsPinned  bool       `json:"is_pinned"`
 	ExpiresAt *time.Time `json:"expires_at"`
 }

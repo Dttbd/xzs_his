@@ -1,0 +1,1 @@
+ALTER TABLE bulletins ALTER COLUMN scope_id DROP NOT NULL;

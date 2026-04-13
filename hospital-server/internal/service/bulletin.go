@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/dttbd/hospital-server/internal/dto"
@@ -26,6 +27,9 @@ func (s *BulletinService) GetByID(id uuid.UUID) (*models.Bulletin, error) {
 }
 
 func (s *BulletinService) Create(req *dto.CreateBulletinReq, authorID uuid.UUID) (*models.Bulletin, error) {
+	if req.ScopeType != "all" && req.ScopeID == nil {
+		return nil, errors.New("scope_id is required when scope_type is region or province")
+	}
 	bulletin := &models.Bulletin{
 		Title:     req.Title,
 		Content:   req.Content,
@@ -56,9 +60,12 @@ func (s *BulletinService) Update(id uuid.UUID, req *dto.UpdateBulletinReq) (*mod
 	}
 	if req.ScopeType != nil {
 		bulletin.ScopeType = *req.ScopeType
+		if *req.ScopeType == "all" {
+			bulletin.ScopeID = nil
+		}
 	}
 	if req.ScopeID != nil {
-		bulletin.ScopeID = *req.ScopeID
+		bulletin.ScopeID = req.ScopeID
 	}
 	if req.IsPinned != nil {
 		bulletin.IsPinned = *req.IsPinned

@@ -5,7 +5,7 @@ import {
   getTicketStats,
   getTicketTrend,
   useThemeContext,
-  Input,
+  DatePicker,
   Select,
   SelectContent,
   SelectItem,
@@ -253,20 +253,18 @@ export function TicketStatsPage() {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">开始日期</label>
-          <Input
-            type="date"
+          <DatePicker
             className="w-40"
             value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
+            onChange={setDateFrom}
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">结束日期</label>
-          <Input
-            type="date"
+          <DatePicker
             className="w-40"
             value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
+            onChange={setDateTo}
           />
         </div>
       </div>
