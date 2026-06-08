@@ -63,7 +63,7 @@ func (s *AuthService) LoginByWechatCode(ctx context.Context, code string) (*dto.
 	return s.LoginByWechatUserID(ctx, wechatUserID)
 }
 
-// LoginByWechatUserID matches a system user by wechat_userid and issues a JWT.
+// LoginByWechatUserID matches a system user by wechat_user_id and issues a JWT.
 // Shared by the real OAuth callback and the dev-login endpoint.
 func (s *AuthService) LoginByWechatUserID(ctx context.Context, wechatUserID string) (*dto.LoginResp, error) {
 	if wechatUserID == "" {
@@ -83,7 +83,7 @@ func (s *AuthService) LoginByWechatUserID(ctx context.Context, wechatUserID stri
 		return nil, err
 	}
 	now := time.Now()
-	s.db.Model(&user).Update("last_login_at", &now)
+	s.db.WithContext(ctx).Model(&user).Update("last_login_at", &now)
 
 	return &dto.LoginResp{
 		Token:     token,

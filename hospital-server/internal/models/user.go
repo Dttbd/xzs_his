@@ -16,7 +16,7 @@ type User struct {
 	AvatarURL    string     `gorm:"size:500" json:"avatar_url"`
 	RegionID     *uuid.UUID `gorm:"type:uuid;index" json:"region_id"`
 	ProvinceID   *uuid.UUID `gorm:"type:uuid;index" json:"province_id"`
-	WechatUserID string     `gorm:"size:100" json:"wechat_userid"`
+	WechatUserID string     `gorm:"size:100;index" json:"wechat_userid"`
 	Status       int8       `gorm:"default:1;not null" json:"status"`
 	LastLoginAt  *time.Time `json:"last_login_at"`
 
