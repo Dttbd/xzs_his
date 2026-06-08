@@ -26,16 +26,21 @@ export function LoginPage() {
   const location = useLocation()
   const [showPwd, setShowPwd] = useState(false)
   const [wechatError, setWechatError] = useState('')
+  const [wechatLoading, setWechatLoading] = useState(false)
 
   async function handleWechatLogin() {
+    if (wechatLoading) return
+    setWechatLoading(true)
     setWechatError('')
     try {
-      const state = Math.random().toString(36).slice(2)
+      const state = crypto.randomUUID()
       sessionStorage.setItem('wechat_oauth_state', state)
       const { url } = await getWechatLoginUrl(state)
       if (url) window.location.href = url
     } catch {
       setWechatError('企业微信登录当前不可用')
+    } finally {
+      setWechatLoading(false)
     }
   }
 
@@ -167,6 +172,7 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={handleWechatLogin}
+                disabled={wechatLoading}
                 className="w-full h-10 rounded-lg border border-border text-sm text-muted hover:text-foreground hover:border-accent/40 transition-colors flex items-center justify-center gap-2"
               >
                 <MessageSquare size={16} strokeWidth={1.5} />

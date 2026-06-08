@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore, wechatCallbackApi } from '@hospital/shared'
 
@@ -8,15 +8,19 @@ export function WechatCallbackPage() {
   const setToken = useAuthStore((s) => s.setToken)
   const setUser = useAuthStore((s) => s.setUser)
   const [error, setError] = useState('')
+  const called = useRef(false)
 
   useEffect(() => {
+    if (called.current) return
+    called.current = true
     const code = params.get('code') || ''
     const state = params.get('state') || ''
     const saved = sessionStorage.getItem('wechat_oauth_state')
-    if (!code || (saved && state && saved !== state)) {
+    if (!code || !saved || saved !== state) {
       setError('登录校验失败，请重试')
       return
     }
+    sessionStorage.removeItem('wechat_oauth_state')
     wechatCallbackApi(code, state)
       .then((resp) => {
         setToken(resp.token)
