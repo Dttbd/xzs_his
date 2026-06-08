@@ -291,6 +291,7 @@ func (c *Config) validateWeChat() error {
 	if c.WeChat.CorpID == "" {
 		missing = append(missing, "WECHAT_CORP_ID")
 	}
+	// AgentID is always > 0 for real WeChat apps; 0 means unset or parse failure.
 	if c.WeChat.AgentID == 0 {
 		missing = append(missing, "WECHAT_AGENT_ID")
 	}
@@ -301,7 +302,8 @@ func (c *Config) validateWeChat() error {
 		missing = append(missing, "WECHAT_CALLBACK")
 	}
 	if len(missing) > 0 {
-		return fmt.Errorf("WECHAT_ENABLED=true but missing: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("WECHAT_ENABLED=true but missing: %s\n\nAll env vars:\n%s",
+			strings.Join(missing, ", "), envVarUsage())
 	}
 	return nil
 }
