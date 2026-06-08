@@ -1,5 +1,5 @@
 export { apiClient } from './client'
-export { loginApi, logoutApi, refreshTokenApi } from './auth'
+export { loginApi, logoutApi, refreshTokenApi, getWechatLoginUrl, wechatCallbackApi } from './auth'
 export type { ApiResponse, PageResult, PageQuery, LoginResponse, UserInfo } from './types'
 
 // Hospitals

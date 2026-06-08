@@ -4,6 +4,7 @@ import { Loading } from '@hospital/shared'
 import { AdminLayout } from '../layouts/admin-layout'
 import { AuthGuard } from './auth-guard'
 import { LoginPage } from '../pages/login'
+import { WechatCallbackPage } from '../pages/login/wechat-callback'
 import { HospitalListPage } from '../pages/hospital'
 import { HospitalDetailPage } from '../pages/hospital/hospital-detail'
 import { TicketListPage } from '../pages/ticket'
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/wechat/callback',
+    element: <WechatCallbackPage />,
   },
   {
     path: '/',
