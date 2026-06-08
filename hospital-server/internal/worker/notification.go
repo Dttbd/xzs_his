@@ -51,5 +51,6 @@ func (h *WechatHandler) HandleSendWechatMsg(ctx context.Context, t *asynq.Task) 
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("unmarshal payload: %w", err)
 	}
+	log.Printf("[worker] sending wechat msg to %d users: %s", len(payload.UserIDs), payload.Title)
 	return h.messenger.SendTextCard(ctx, payload.UserIDs, payload.Title, payload.Content, payload.URL)
 }

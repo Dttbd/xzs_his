@@ -65,9 +65,9 @@ func main() {
 
 	// Register handlers
 	notifHandler := worker.NewNotificationHandler(notifSvc)
+	wechatHandler := worker.NewWechatHandler(wechatClient)
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(worker.TaskSendNotification, notifHandler.HandleSendNotification)
-	wechatHandler := worker.NewWechatHandler(wechatClient)
 	mux.HandleFunc(worker.TaskSendWechatMsg, wechatHandler.HandleSendWechatMsg)
 
 	log.Println("worker starting...")
