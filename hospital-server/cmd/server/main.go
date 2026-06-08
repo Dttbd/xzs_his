@@ -19,11 +19,15 @@ import (
 	"github.com/dttbd/hospital-server/internal/config"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/internal/queue"
+	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
+	"github.com/dttbd/hospital-server/internal/wechatadapter"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
 	"github.com/dttbd/hospital-server/pkg/storage"
+	"github.com/dttbd/hospital-server/pkg/wechat"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -71,6 +75,27 @@ func main() {
 	asynqClient := queue.NewClient(cfg.Redis.Addr(), cfg.Redis.Password, cfg.Redis.DB)
 	defer asynqClient.Close()
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.Redis.Addr(),
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	defer rdb.Close()
+
+	notifSvc := service.NewNotificationService(repository.NewNotificationRepo(db))
+	wechatClient := wechat.New(
+		wechat.Config{
+			Enabled:  cfg.WeChat.Enabled,
+			CorpID:   cfg.WeChat.CorpID,
+			AgentID:  cfg.WeChat.AgentID,
+			Secret:   cfg.WeChat.Secret,
+			Callback: cfg.WeChat.Callback,
+		},
+		wechatadapter.NewUserResolver(db),
+		wechatadapter.NewMockSink(notifSvc),
+		rdb,
+	)
+
 	if err := seedDefaults(db, enforcer); err != nil {
 		log.Fatalf("failed to seed defaults: %v", err)
 	}
@@ -79,7 +104,7 @@ func main() {
 	gin.SetMode(cfg.Server.Mode)
 	r := gin.New()
 
-	router.Setup(r, db, enforcer, store, cfg.JWT.Secret, cfg.JWT.ExpireHour, asynqClient)
+	router.Setup(r, db, enforcer, store, cfg.JWT.Secret, cfg.JWT.ExpireHour, asynqClient, wechatClient)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	log.Printf("server starting on %s", addr)

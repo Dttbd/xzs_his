@@ -9,6 +9,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/dttbd/hospital-server/internal/service"
 	"github.com/dttbd/hospital-server/pkg/storage"
+	"github.com/dttbd/hospital-server/pkg/wechat"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -17,7 +18,7 @@ import (
 	_ "github.com/dttbd/hospital-server/docs/swagger"
 )
 
-func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int, asynqClient *queue.Client) {
+func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage.Storage, jwtSecret string, jwtExpireH int, asynqClient *queue.Client, wechatClient wechat.Client) {
 	// Repositories
 	userRepo := repository.NewUserRepo(db)
 	orgRepo := repository.NewOrganizationRepo(db)
@@ -29,7 +30,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	reportRepo := repository.NewReportRepo(db)
 
 	// Services
-	authSvc := service.NewAuthService(db, jwtSecret, jwtExpireH)
+	authSvc := service.NewAuthService(db, jwtSecret, jwtExpireH, wechatClient)
 	userSvc := service.NewUserService(userRepo)
 	orgSvc := service.NewOrganizationService(orgRepo)
 	roleSvc := service.NewRoleService(roleRepo, enforcer)
@@ -40,7 +41,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	reportSvc := service.NewReportService(reportRepo)
 
 	// Handlers
-	authH := admin.NewAuthHandler(authSvc)
+	authH := admin.NewAuthHandler(authSvc, wechatClient)
 	userH := admin.NewUserHandler(userSvc)
 	orgH := admin.NewOrganizationHandler(orgSvc)
 	roleH := admin.NewRoleHandler(roleSvc)
@@ -68,6 +69,12 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	{
 		authGroup.POST("/login", authH.Login)
 		authGroup.POST("/logout", authH.Logout)
+		authGroup.GET("/wechat/url", authH.WechatURL)
+		authGroup.POST("/wechat/callback", authH.WechatCallback)
+		// dev-login exists ONLY when WeChat is disabled (mock mode)
+		if !wechatClient.Enabled() {
+			authGroup.POST("/wechat/dev-login", authH.WechatDevLogin)
+		}
 	}
 
 	// Admin API (auth required)
