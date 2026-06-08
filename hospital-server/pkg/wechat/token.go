@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -44,7 +45,11 @@ func (t *tokenCache) get(ctx context.Context) (string, error) {
 	// Single-flight: only one process refreshes at a time.
 	ok, _ := t.rdb.SetNX(ctx, tokenLockKey, "1", tokenLockTTL).Result()
 	if !ok {
-		time.Sleep(tokenLockWait)
+		select {
+		case <-time.After(tokenLockWait):
+		case <-ctx.Done():
+			return "", ctx.Err()
+		}
 		if v, err := t.rdb.Get(ctx, tokenKey).Result(); err == nil && v != "" {
 			return v, nil
 		}
@@ -61,13 +66,17 @@ func (t *tokenCache) get(ctx context.Context) (string, error) {
 	if ttl < time.Second {
 		ttl = time.Second
 	}
-	t.rdb.Set(ctx, tokenKey, token, ttl)
+	if err := t.rdb.Set(ctx, tokenKey, token, ttl).Err(); err != nil {
+		log.Printf("[wechat] cache access_token failed: %v", err)
+	}
 	return token, nil
 }
 
 // invalidate drops the cached token (used after errcode 42001).
 func (t *tokenCache) invalidate(ctx context.Context) {
-	t.rdb.Del(ctx, tokenKey)
+	if err := t.rdb.Del(ctx, tokenKey).Err(); err != nil {
+		log.Printf("[wechat] invalidate access_token failed: %v", err)
+	}
 }
 
 func (t *tokenCache) fetch(ctx context.Context) (string, int, error) {
