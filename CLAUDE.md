@@ -19,6 +19,13 @@ hospital/
 └── deploy/                # 部署配置（在 hospital-server/deploy/）
 ```
 
+## 项目记忆
+
+本项目的记忆文件存放在**项目根目录的 `memory/` 下**（不是 Claude 默认的 harness 记忆目录）。开始新会话时应先通读 `memory/*.md` 了解项目背景、架构决策、API、数据模型、已修 bug 与待办；推进工作后同步更新对应文件。
+
+- `memory/MEMORY.md` — 索引（每条记忆一行）
+- `project_overview` / `backend_architecture` / `data_models` / `api_reference` / `design_style` / `bugs_fixed` / `remaining_work`
+
 ## 技术栈
 
 **后端:** Go 1.22 + Gin + GORM v2 + PostgreSQL 16 + Redis 7 + Casbin v3 + Asynq + MinIO
