@@ -18,6 +18,7 @@ import (
 
 func TestWechatDevLogin_Success(t *testing.T) {
 	r, db := setupTestServer(t)
+	// dev-login route is registered only in mock mode; setup_test.go uses Enabled:false
 
 	u := models.User{Username: "wxuser", RealName: "企微用户", WechatUserID: "zhangsan", Status: 1}
 	if err := db.Create(&u).Error; err != nil {
@@ -79,5 +80,8 @@ func TestWechatMock_RecordsInAppNotice(t *testing.T) {
 	}
 	if n.Title != "[企微Mock] 推送标题" {
 		t.Fatalf("unexpected title: %s", n.Title)
+	}
+	if n.Content != "推送内容" {
+		t.Fatalf("content not forwarded: %s", n.Content)
 	}
 }
