@@ -248,6 +248,13 @@ func (s *TicketService) CreateTicket(creatorID uuid.UUID, req *dto.CreateTicketR
 			if err != nil {
 				log.Printf("failed to enqueue notification: %v", err)
 			}
+			if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
+				UserIDs: []uuid.UUID{assigneeID},
+				Title:   "新工单分配给您",
+				Content: ticketTitle,
+			}); werr != nil {
+				log.Printf("failed to enqueue wechat msg: %v", werr)
+			}
 		}()
 	}
 
@@ -323,6 +330,13 @@ func (s *TicketService) TransitionTicket(ticketID, userID uuid.UUID, req *dto.Tr
 			if err != nil {
 				log.Printf("failed to enqueue notification: %v", err)
 			}
+			if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
+				UserIDs: []uuid.UUID{creatorID},
+				Title:   "工单状态已更新",
+				Content: "工单「" + ticket.Title + "」已流转至：" + toStatusName,
+			}); werr != nil {
+				log.Printf("failed to enqueue wechat msg: %v", werr)
+			}
 		}()
 	}
 
@@ -368,6 +382,13 @@ func (s *TicketService) AssignTicket(ticketID, userID uuid.UUID, req *dto.Assign
 			})
 			if err != nil {
 				log.Printf("failed to enqueue notification: %v", err)
+			}
+			if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
+				UserIDs: []uuid.UUID{assigneeID},
+				Title:   "工单已分配给您",
+				Content: ticketTitle,
+			}); werr != nil {
+				log.Printf("failed to enqueue wechat msg: %v", werr)
 			}
 		}()
 	}
@@ -422,6 +443,13 @@ func (s *TicketService) AddComment(ticketID, userID uuid.UUID, req *dto.CreateCo
 					})
 					if err != nil {
 						log.Printf("failed to enqueue notification: %v", err)
+					}
+					if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
+						UserIDs: recipientIDs,
+						Title:   "工单有新评论",
+						Content: req.Content,
+					}); werr != nil {
+						log.Printf("failed to enqueue wechat msg: %v", werr)
 					}
 				}()
 			}
