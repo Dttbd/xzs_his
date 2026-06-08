@@ -33,6 +33,19 @@ func (c *Client) EnqueueNotification(payload *NotificationPayload) error {
 	return nil
 }
 
+func (c *Client) EnqueueWechatMsg(payload *WechatMsgPayload) error {
+	task, err := NewWechatMsgTask(payload)
+	if err != nil {
+		return err
+	}
+	info, err := c.client.Enqueue(task)
+	if err != nil {
+		return fmt.Errorf("enqueue wechat msg: %w", err)
+	}
+	log.Printf("[asynq] enqueued wechat msg task: %s", info.ID)
+	return nil
+}
+
 func (c *Client) Close() error {
 	return c.client.Close()
 }
