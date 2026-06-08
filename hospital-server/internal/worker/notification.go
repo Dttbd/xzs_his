@@ -8,6 +8,7 @@ import (
 
 	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/service"
+	"github.com/dttbd/hospital-server/pkg/wechat"
 	"github.com/hibiken/asynq"
 )
 
@@ -37,13 +38,18 @@ func (h *NotificationHandler) HandleSendNotification(ctx context.Context, t *asy
 	)
 }
 
-func HandleSendWechatMsg(ctx context.Context, t *asynq.Task) error {
+type WechatHandler struct {
+	messenger wechat.Messenger
+}
+
+func NewWechatHandler(messenger wechat.Messenger) *WechatHandler {
+	return &WechatHandler{messenger: messenger}
+}
+
+func (h *WechatHandler) HandleSendWechatMsg(ctx context.Context, t *asynq.Task) error {
 	var payload queue.WechatMsgPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("unmarshal payload: %w", err)
 	}
-
-	// Stub: log the message, actual WeChat API integration in future
-	log.Printf("[worker] would send WeChat message to %v: %s", payload.UserIDs, payload.Title)
-	return nil
+	return h.messenger.SendTextCard(ctx, payload.UserIDs, payload.Title, payload.Content, payload.URL)
 }
