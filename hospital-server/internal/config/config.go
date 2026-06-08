@@ -16,6 +16,7 @@ type Config struct {
 	Redis    RedisConfig
 	JWT      JWTConfig
 	MinIO    MinIOConfig
+	WeChat   WeChatConfig
 }
 
 type ServerConfig struct {
@@ -52,6 +53,14 @@ type MinIOConfig struct {
 	UseSSL    bool
 }
 
+type WeChatConfig struct {
+	Enabled  bool
+	CorpID   string
+	AgentID  int
+	Secret   string
+	Callback string // OAuth 回调 URL
+}
+
 // DSN returns a GORM-compatible connection string.
 func (d *DatabaseConfig) DSN() string {
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
@@ -86,6 +95,11 @@ var envVars = []envVar{
 	{Key: "PORT", Default: "8080", Desc: "server port"},
 	{Key: "SERVER_MODE", Default: "debug", Desc: "debug / release / test"},
 	{Key: "JWT_EXPIRE_HOUR", Default: "24", Desc: "token expiry in hours"},
+	{Key: "WECHAT_ENABLED", Default: "false", Desc: "启用企业微信集成；false=mock 模式"},
+	{Key: "WECHAT_CORP_ID", Default: "", Desc: "企业微信 CorpID（enabled 时必填）"},
+	{Key: "WECHAT_AGENT_ID", Default: "0", Desc: "应用 AgentId"},
+	{Key: "WECHAT_SECRET", Default: "", Desc: "应用 Secret"},
+	{Key: "WECHAT_CALLBACK", Default: "", Desc: "OAuth 回调 URL"},
 }
 
 // loadEnvVars validates all required vars and returns a map of key→value.
@@ -142,13 +156,27 @@ func Load() (*Config, error) {
 	port, _ := strconv.Atoi(env["PORT"])
 	expireHour, _ := strconv.Atoi(env["JWT_EXPIRE_HOUR"])
 
-	return &Config{
+	cfg := &Config{
 		Server:   ServerConfig{Port: port, Mode: env["SERVER_MODE"]},
 		Database: *dbCfg,
 		Redis:    *redisCfg,
 		JWT:      JWTConfig{Secret: env["JWT_SECRET"], ExpireHour: expireHour},
 		MinIO:    *minioCfg,
-	}, nil
+	}
+
+	agentID, _ := strconv.Atoi(env["WECHAT_AGENT_ID"])
+	cfg.WeChat = WeChatConfig{
+		Enabled:  env["WECHAT_ENABLED"] == "true",
+		CorpID:   env["WECHAT_CORP_ID"],
+		AgentID:  agentID,
+		Secret:   env["WECHAT_SECRET"],
+		Callback: env["WECHAT_CALLBACK"],
+	}
+	if err := cfg.validateWeChat(); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }
 
 // parseDatabaseURL parses postgres://user:pass@host:5432/dbname?sslmode=disable
@@ -252,6 +280,30 @@ func parseMinIOURL(raw string) (*MinIOConfig, error) {
 	}
 
 	return cfg, nil
+}
+
+// validateWeChat ensures credentials are present when WeChat integration is enabled.
+func (c *Config) validateWeChat() error {
+	if !c.WeChat.Enabled {
+		return nil
+	}
+	var missing []string
+	if c.WeChat.CorpID == "" {
+		missing = append(missing, "WECHAT_CORP_ID")
+	}
+	if c.WeChat.AgentID == 0 {
+		missing = append(missing, "WECHAT_AGENT_ID")
+	}
+	if c.WeChat.Secret == "" {
+		missing = append(missing, "WECHAT_SECRET")
+	}
+	if c.WeChat.Callback == "" {
+		missing = append(missing, "WECHAT_CALLBACK")
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("WECHAT_ENABLED=true but missing: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
 
 // envVarUsage returns a formatted list of all env vars for error messages.
