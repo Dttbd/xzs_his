@@ -6,6 +6,7 @@ package wechatadapter
 import (
 	"context"
 
+	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -30,8 +31,11 @@ func (r *UserResolver) WechatUserIDs(ctx context.Context, userIDs []uuid.UUID) (
 		ID           uuid.UUID
 		WechatUserID string
 	}
+	// Column "wechat_user_id" is GORM-derived from User.WechatUserID.
+	// Using Model(&User{}) applies the soft-delete scope (deleted_at IS NULL),
+	// so soft-deleted users never receive WeChat pushes.
 	if err := r.db.WithContext(ctx).
-		Table("users").
+		Model(&models.User{}).
 		Select("id, wechat_user_id").
 		Where("id IN ? AND wechat_user_id <> ''", userIDs).
 		Scan(&rows).Error; err != nil {
