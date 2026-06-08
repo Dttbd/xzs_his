@@ -58,6 +58,10 @@ type getUserInfoResp struct {
 }
 
 func (c *realClient) CodeToUserID(ctx context.Context, code string) (string, error) {
+	return c.codeToUserID(ctx, code, true)
+}
+
+func (c *realClient) codeToUserID(ctx context.Context, code string, allowRetry bool) (string, error) {
 	token, err := c.token.get(ctx)
 	if err != nil {
 		return "", err
@@ -75,38 +79,15 @@ func (c *realClient) CodeToUserID(ctx context.Context, code string) (string, err
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return "", fmt.Errorf("getuserinfo decode: %w", err)
 	}
-	if r.ErrCode == 42001 { // token expired: refresh once and retry
+	if r.ErrCode == 42001 && allowRetry { // token expired: refresh once and retry
 		c.token.invalidate(ctx)
-		return c.codeToUserIDRetry(ctx, code)
+		return c.codeToUserID(ctx, code, false)
 	}
 	if r.ErrCode != 0 {
 		return "", fmt.Errorf("getuserinfo errcode=%d errmsg=%s", r.ErrCode, r.ErrMsg)
 	}
 	if r.UserID == "" {
 		return "", fmt.Errorf("getuserinfo returned empty userid (external/non-member?)")
-	}
-	return r.UserID, nil
-}
-
-func (c *realClient) codeToUserIDRetry(ctx context.Context, code string) (string, error) {
-	token, err := c.token.get(ctx)
-	if err != nil {
-		return "", err
-	}
-	u := fmt.Sprintf("%s/cgi-bin/auth/getuserinfo?access_token=%s&code=%s",
-		c.baseURL, url.QueryEscape(token), url.QueryEscape(code))
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("getuserinfo retry: %w", err)
-	}
-	defer resp.Body.Close()
-	var r getUserInfoResp
-	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		return "", err
-	}
-	if r.ErrCode != 0 {
-		return "", fmt.Errorf("getuserinfo retry errcode=%d errmsg=%s", r.ErrCode, r.ErrMsg)
 	}
 	return r.UserID, nil
 }
@@ -155,7 +136,7 @@ func (c *realClient) send(ctx context.Context, wxIDs []string, title, content, l
 			"btntxt":      "详情",
 		},
 	}
-	body, _ := json.Marshal(payload)
+	body, _ := json.Marshal(payload) // cannot fail: payload holds only JSON-safe values
 	u := fmt.Sprintf("%s/cgi-bin/message/send?access_token=%s", c.baseURL, url.QueryEscape(token))
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
