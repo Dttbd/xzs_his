@@ -22,3 +22,20 @@ export async function refreshTokenApi(): Promise<{ token: string; expires_in: nu
   )
   return data.data!
 }
+
+export async function getWechatLoginUrl(state: string): Promise<{ url: string }> {
+  const { data } = await apiClient.get<ApiResponse<{ url: string }>>('/api/auth/wechat/url', {
+    params: { state },
+  })
+  if (data.code !== 0) throw new Error(data.message)
+  return data.data!
+}
+
+export async function wechatCallbackApi(code: string, state: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<ApiResponse<LoginResponse>>('/api/auth/wechat/callback', {
+    code,
+    state,
+  })
+  if (data.code !== 0) throw new Error(data.message)
+  return data.data!
+}

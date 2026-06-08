@@ -1,12 +1,14 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/dttbd/hospital-server/pkg/auth"
+	"github.com/dttbd/hospital-server/pkg/wechat"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -16,10 +18,11 @@ type AuthService struct {
 	db        *gorm.DB
 	jwtSecret string
 	expireH   int
+	sso       wechat.SSOClient
 }
 
-func NewAuthService(db *gorm.DB, jwtSecret string, expireH int) *AuthService {
-	return &AuthService{db: db, jwtSecret: jwtSecret, expireH: expireH}
+func NewAuthService(db *gorm.DB, jwtSecret string, expireH int, sso wechat.SSOClient) *AuthService {
+	return &AuthService{db: db, jwtSecret: jwtSecret, expireH: expireH, sso: sso}
 }
 
 func (s *AuthService) Login(req *dto.LoginReq) (*dto.LoginResp, error) {
@@ -43,6 +46,44 @@ func (s *AuthService) Login(req *dto.LoginReq) (*dto.LoginResp, error) {
 
 	now := time.Now()
 	s.db.Model(&user).Update("last_login_at", &now)
+
+	return &dto.LoginResp{
+		Token:     token,
+		ExpiresIn: s.expireH * 3600,
+		User:      user,
+	}, nil
+}
+
+// LoginByWechatCode exchanges an OAuth code for a WeChat UserID, then logs in.
+func (s *AuthService) LoginByWechatCode(ctx context.Context, code string) (*dto.LoginResp, error) {
+	wechatUserID, err := s.sso.CodeToUserID(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+	return s.LoginByWechatUserID(ctx, wechatUserID)
+}
+
+// LoginByWechatUserID matches a system user by wechat_user_id and issues a JWT.
+// Shared by the real OAuth callback and the dev-login endpoint.
+func (s *AuthService) LoginByWechatUserID(ctx context.Context, wechatUserID string) (*dto.LoginResp, error) {
+	if wechatUserID == "" {
+		return nil, errors.New("empty wechat userid")
+	}
+	var user models.User
+	if err := s.db.WithContext(ctx).Preload("Roles").Preload("Region").Preload("Province").
+		Where("wechat_user_id = ? AND status = 1", wechatUserID).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("该企业微信未绑定系统账号")
+		}
+		return nil, err
+	}
+
+	token, err := auth.GenerateToken(s.jwtSecret, user.ID, user.Username, s.expireH)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	s.db.WithContext(ctx).Model(&user).Update("last_login_at", &now)
 
 	return &dto.LoginResp{
 		Token:     token,

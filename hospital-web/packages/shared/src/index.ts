@@ -9,7 +9,7 @@ export { cn } from './lib/utils'
 export * from './components/ui'
 
 // API
-export { apiClient, loginApi, logoutApi, refreshTokenApi } from './api'
+export { apiClient, loginApi, logoutApi, refreshTokenApi, getWechatLoginUrl, wechatCallbackApi } from './api'
 export type { ApiResponse, PageResult, PageQuery, LoginResponse, UserInfo } from './api'
 
 // API — Hospitals

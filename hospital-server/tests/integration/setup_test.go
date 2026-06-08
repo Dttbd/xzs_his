@@ -14,6 +14,7 @@ import (
 	"github.com/dttbd/hospital-server/internal/router"
 	"github.com/dttbd/hospital-server/internal/service"
 	casbinpkg "github.com/dttbd/hospital-server/pkg/casbin"
+	"github.com/dttbd/hospital-server/pkg/wechat"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -64,7 +65,7 @@ func setupTestServer(t *testing.T) (*gin.Engine, *gorm.DB) {
 
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-	router.Setup(r, db, enforcer, nil, testJWTSecret, 24, nil)
+	router.Setup(r, db, enforcer, nil, testJWTSecret, 24, nil, wechat.New(wechat.Config{Enabled: false}, nil, nil, nil)) // mock client; resolver/sink/rdb unused in mock mode
 
 	return r, db
 }

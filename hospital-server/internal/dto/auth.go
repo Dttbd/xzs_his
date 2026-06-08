@@ -15,3 +15,12 @@ type RefreshResp struct {
 	Token     string `json:"token"`
 	ExpiresIn int    `json:"expires_in"`
 }
+
+type WechatCallbackReq struct {
+	Code  string `json:"code" binding:"required"`
+	State string `json:"state"`
+}
+
+type WechatDevLoginReq struct {
+	WechatUserID string `json:"wechat_userid" binding:"required"`
+}

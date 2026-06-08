@@ -3,13 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { User, Lock, Eye, EyeOff, ArrowRight, Activity } from 'lucide-react'
+import { User, Lock, Eye, EyeOff, ArrowRight, Activity, MessageSquare } from 'lucide-react'
 import {
   useAuthStore,
   ThemeToggle,
   Button,
   Input,
   Label,
+  getWechatLoginUrl,
 } from '@hospital/shared'
 
 const loginSchema = z.object({
@@ -24,6 +25,24 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [showPwd, setShowPwd] = useState(false)
+  const [wechatError, setWechatError] = useState('')
+  const [wechatLoading, setWechatLoading] = useState(false)
+
+  async function handleWechatLogin() {
+    if (wechatLoading) return
+    setWechatLoading(true)
+    setWechatError('')
+    try {
+      const state = crypto.randomUUID()
+      sessionStorage.setItem('wechat_oauth_state', state)
+      const { url } = await getWechatLoginUrl(state)
+      if (url) window.location.href = url
+    } catch {
+      setWechatError('企业微信登录当前不可用')
+    } finally {
+      setWechatLoading(false)
+    }
+  }
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
 
@@ -143,6 +162,24 @@ export function LoginPage() {
                 )}
               </Button>
             </form>
+
+            {/* WeChat login */}
+            <div className="mt-4">
+              <div className="relative flex items-center justify-center mb-4">
+                <div className="absolute inset-x-0 h-px bg-border" />
+                <span className="relative bg-background px-3 text-xs text-muted-foreground">或</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleWechatLogin}
+                disabled={wechatLoading}
+                className="w-full h-10 rounded-lg border border-border text-sm text-muted hover:text-foreground hover:border-accent/40 transition-colors flex items-center justify-center gap-2"
+              >
+                <MessageSquare size={16} strokeWidth={1.5} />
+                企业微信登录
+              </button>
+              {wechatError && <p className="text-destructive text-xs mt-2 text-center">{wechatError}</p>}
+            </div>
 
             {/* footer hint */}
             <p className="text-center text-xs text-muted-foreground mt-8">

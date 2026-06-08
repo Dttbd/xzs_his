@@ -30,10 +30,10 @@ func NewNotificationTask(payload *NotificationPayload) (*asynq.Task, error) {
 }
 
 type WechatMsgPayload struct {
-	UserIDs []string `json:"user_ids"`
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
-	URL     string   `json:"url"`
+	UserIDs []uuid.UUID `json:"user_ids"`
+	Title   string      `json:"title"`
+	Content string      `json:"content"`
+	URL     string      `json:"url"`
 }
 
 func NewWechatMsgTask(payload *WechatMsgPayload) (*asynq.Task, error) {
