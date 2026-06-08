@@ -52,10 +52,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Produce      json
 // @Param        state  query     string  false  "状态参数"
 // @Success      200    {object}  dto.Response
+// @Failure      503    {object}  dto.Response
 // @Router       /api/auth/wechat/url [get]
 func (h *AuthHandler) WechatURL(c *gin.Context) {
 	state := c.Query("state")
-	c.JSON(http.StatusOK, dto.OK(gin.H{"url": h.wechat.AuthURL(state)}))
+	url := h.wechat.AuthURL(state)
+	if url == "" {
+		c.JSON(http.StatusServiceUnavailable, dto.Fail(503, "企业微信登录在当前模式不可用（请使用账号密码或 dev-login）"))
+		return
+	}
+	c.JSON(http.StatusOK, dto.OK(gin.H{"url": url}))
 }
 
 // WechatCallback godoc
