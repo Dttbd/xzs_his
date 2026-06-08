@@ -65,6 +65,7 @@ func (h *AuthHandler) WechatURL(c *gin.Context) {
 // @Produce      json
 // @Param        body  body      dto.WechatCallbackReq  true  "回调参数"
 // @Success      200   {object}  dto.Response{data=dto.LoginResp}
+// @Failure      400   {object}  dto.Response
 // @Failure      401   {object}  dto.Response
 // @Router       /api/auth/wechat/callback [post]
 func (h *AuthHandler) WechatCallback(c *gin.Context) {
@@ -88,6 +89,7 @@ func (h *AuthHandler) WechatCallback(c *gin.Context) {
 // @Produce      json
 // @Param        body  body      dto.WechatDevLoginReq  true  "开发登录参数"
 // @Success      200   {object}  dto.Response{data=dto.LoginResp}
+// @Failure      400   {object}  dto.Response
 // @Failure      401   {object}  dto.Response
 // @Router       /api/auth/wechat/dev-login [post]
 func (h *AuthHandler) WechatDevLogin(c *gin.Context) {
