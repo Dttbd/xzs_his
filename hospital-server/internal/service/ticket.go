@@ -318,11 +318,12 @@ func (s *TicketService) TransitionTicket(ticketID, userID uuid.UUID, req *dto.Tr
 		creatorID := ticket.CreatorID
 		ticketID := ticket.ID
 		toStatusName := matchedTransition.ToStatus.Name
+		ticketTitle := ticket.Title
 		go func() {
 			err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
 				UserIDs: []uuid.UUID{creatorID},
 				Title:   "工单状态已更新",
-				Content: "工单「" + ticket.Title + "」已流转至：" + toStatusName,
+				Content: "工单「" + ticketTitle + "」已流转至：" + toStatusName,
 				Type:    "ticket",
 				RefType: "ticket",
 				RefID:   &ticketID,
@@ -333,7 +334,7 @@ func (s *TicketService) TransitionTicket(ticketID, userID uuid.UUID, req *dto.Tr
 			if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
 				UserIDs: []uuid.UUID{creatorID},
 				Title:   "工单状态已更新",
-				Content: "工单「" + ticket.Title + "」已流转至：" + toStatusName,
+				Content: "工单「" + ticketTitle + "」已流转至：" + toStatusName,
 			}); werr != nil {
 				log.Printf("failed to enqueue wechat msg: %v", werr)
 			}
