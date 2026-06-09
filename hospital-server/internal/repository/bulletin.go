@@ -109,7 +109,7 @@ func (r *BulletinRepo) ResolveRecipients(scopeType string, scopeID *uuid.UUID, e
 		Where("id NOT IN (?)",
 			r.db.Table("user_roles AS ur").
 				Select("ur.user_id").
-				Joins("JOIN roles ro ON ro.id = ur.role_id").
+				Joins("JOIN roles ro ON ro.id = ur.role_id AND ro.deleted_at IS NULL").
 				Where("ro.code = ?", "customer"))
 
 	switch scopeType {
@@ -125,7 +125,7 @@ func (r *BulletinRepo) ResolveRecipients(scopeType string, scopeID *uuid.UUID, e
 			return nil, errors.New("scope_id required for region scope")
 		}
 		q = q.Where("region_id = ? OR province_id IN (?)", *scopeID,
-			r.db.Table("provinces").Select("id").Where("region_id = ?", *scopeID))
+			r.db.Model(&models.Province{}).Select("id").Where("region_id = ?", *scopeID))
 	default:
 		return nil, fmt.Errorf("unknown scope_type: %s", scopeType)
 	}

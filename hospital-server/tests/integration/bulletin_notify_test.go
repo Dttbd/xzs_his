@@ -62,6 +62,8 @@ func TestBulletinResolveRecipients(t *testing.T) {
 	uP2 := mk("u_p2", nil, &p2.ID, false)             // province p2
 	uOther := mk("u_other", nil, &pOther.ID, false)   // different region
 	uCust := mk("u_cust", nil, &p1.ID, true)           // customer in p1
+	uInactive := mk("u_inactive", nil, &p1.ID, false) // inactive user in p1 — must always be excluded
+	db.Model(&uInactive).Update("status", 0)
 
 	repo := repository.NewBulletinRepo(db)
 
@@ -73,8 +75,8 @@ func TestBulletinResolveRecipients(t *testing.T) {
 	if !contains(ids, uRegion.ID) || !contains(ids, uP1.ID) || !contains(ids, uP2.ID) {
 		t.Fatalf("region scope missing expected users: %v", ids)
 	}
-	if contains(ids, uOther.ID) || contains(ids, uCust.ID) || contains(ids, author.ID) {
-		t.Fatalf("region scope included excluded users: %v", ids)
+	if contains(ids, uOther.ID) || contains(ids, uCust.ID) || contains(ids, author.ID) || contains(ids, uInactive.ID) {
+		t.Fatalf("region scope included excluded users (want: no uOther/uCust/author/uInactive): %v", ids)
 	}
 
 	// province p1: only uP1; not uP2, not customer, not author
@@ -85,8 +87,8 @@ func TestBulletinResolveRecipients(t *testing.T) {
 	if !contains(ids, uP1.ID) {
 		t.Fatalf("province scope missing uP1: %v", ids)
 	}
-	if contains(ids, uP2.ID) || contains(ids, uCust.ID) || contains(ids, author.ID) {
-		t.Fatalf("province scope included excluded users: %v", ids)
+	if contains(ids, uP2.ID) || contains(ids, uCust.ID) || contains(ids, author.ID) || contains(ids, uInactive.ID) {
+		t.Fatalf("province scope included excluded users (want: no uP2/uCust/author/uInactive): %v", ids)
 	}
 
 	// all: all non-customer except author (uRegion, uP1, uP2, uOther); not customer, not author
@@ -97,7 +99,7 @@ func TestBulletinResolveRecipients(t *testing.T) {
 	if !contains(ids, uRegion.ID) || !contains(ids, uP1.ID) || !contains(ids, uP2.ID) || !contains(ids, uOther.ID) {
 		t.Fatalf("all scope missing expected users: %v", ids)
 	}
-	if contains(ids, uCust.ID) || contains(ids, author.ID) {
-		t.Fatalf("all scope included excluded users: %v", ids)
+	if contains(ids, uCust.ID) || contains(ids, author.ID) || contains(ids, uInactive.ID) {
+		t.Fatalf("all scope included excluded users (want: no uCust/author/uInactive): %v", ids)
 	}
 }

@@ -125,7 +125,7 @@ func (s *BulletinService) notifyPublish(b *models.Bulletin) {
 	}
 	bid := b.ID
 	title := "新公告：" + b.Title
-	content := b.Title
+	content := b.Title // use title as preview; bulletin body can be long HTML
 	go func() {
 		if err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
 			UserIDs: recipients,
