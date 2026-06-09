@@ -57,9 +57,14 @@ Vitest starter suite + Playwright 登录冒烟已在 `hospital-web` 配置完成
 - **Playwright**（仓库根）：2 个 E2E 冒烟——登录成功跳转、登录失败显示错误（后端全部 mock，无需真实服务）
 - 运行命令：`pnpm test`（Vitest）、`pnpm test:e2e`（Playwright）
 
-### ~~11. 生产部署优化~~ ✅ 部分完成
+### ~~11. 生产部署优化~~ ✅ 已完成
 - ECharts code splitting 已完成（主 bundle 1.66MB → 501KB）
-- Nginx 生产配置和 Docker Compose 生产 profile 保留为 TODO
+- Nginx 生产配置已完成：`hospital-web/nginx.prod.conf`（gzip、安全头、SPA fallback、/api/ 代理、静态资源缓存）
+- Docker Compose 生产编排已完成：`docker-compose.prod.yml`（api + worker + nginx + postgres + redis + minio，全健康检查）
+- 多阶段 Dockerfile 已完成：后端同时构建 server/worker 两个二进制；前端 pnpm monorepo → nginx 静态服务
+- Portal vite base 已设为 `/portal/`，router basename 同步更新，与 nginx 路由匹配
+- HTTPS 配置就绪（nginx.prod.conf 已含注释的 443 server block），挂载证书后取消注释即可启用
+- `.env.prod.example` 已提供，`.env.prod` 和 `certs/` 已加入 .gitignore
 
 ## How to apply
 - 开发 Portal 后端时直接复用 admin 的 service/repository 层，只需新建 handler/portal 层

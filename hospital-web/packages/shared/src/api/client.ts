@@ -24,9 +24,9 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('his-token')
       localStorage.removeItem('his-user')
-      // Only redirect if not already on login page
+      // Only redirect if not already on login page; route to the correct login for each app
       if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login'
+        window.location.href = window.location.pathname.startsWith('/portal') ? '/portal/login' : '/login'
       }
     }
     return Promise.reject(error)

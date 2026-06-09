@@ -1,15 +1,16 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 RUN apk add --no-cache git
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /build/server ./cmd/server/
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/server ./cmd/server/ \
+ && CGO_ENABLED=0 GOOS=linux go build -o /out/worker ./cmd/worker/
 
-FROM alpine:3.19
-RUN apk add --no-cache ca-certificates tzdata
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates tzdata wget
 WORKDIR /app
-COPY --from=builder /build/server .
-COPY configs/config.yaml configs/config.yaml
+COPY --from=builder /out/server /app/server
+COPY --from=builder /out/worker /app/worker
 EXPOSE 8080
-CMD ["./server", "-config", "configs/config.yaml"]
+CMD ["/app/server"]
