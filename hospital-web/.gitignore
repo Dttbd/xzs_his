@@ -2,6 +2,10 @@ node_modules
 dist
 .env.local
 *.tsbuildinfo
+# Playwright artifacts
+test-results
+playwright-report
+.playwright
 # TypeScript build artifacts in source dirs
 packages/*/src/**/*.js
 packages/*/src/**/*.d.ts
