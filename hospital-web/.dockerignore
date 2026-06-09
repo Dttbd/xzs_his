@@ -1,0 +1,9 @@
+node_modules
+packages/*/node_modules
+dist
+packages/*/dist
+.git
+.gitignore
+test-results
+e2e
+*.md

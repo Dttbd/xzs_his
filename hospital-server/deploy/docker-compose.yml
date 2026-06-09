@@ -1,3 +1,10 @@
+# Dev infrastructure — postgres, redis, minio only.
+# Start with: docker compose -f deploy/docker-compose.yml up -d postgres redis minio
+# (or simply: docker compose -f deploy/docker-compose.yml up -d)
+#
+# The API server and worker are run locally: go run ./cmd/server/  /  go run ./cmd/worker/
+# See README / CLAUDE.md for full dev setup instructions.
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -46,24 +53,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  api:
-    build:
-      context: ..
-      dockerfile: deploy/Dockerfile
-    container_name: his-api
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      - HIS_DATABASE_HOST=postgres
-      - HIS_REDIS_HOST=redis
-    volumes:
-      - ../configs:/app/configs:ro
 
 volumes:
   postgres_data:
