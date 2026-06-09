@@ -69,5 +69,5 @@ func (r *NotificationRepo) BatchCreate(notifications []models.Notification) erro
 	if len(notifications) == 0 {
 		return nil
 	}
-	return r.db.Create(&notifications).Error
+	return r.db.CreateInBatches(notifications, 500).Error
 }

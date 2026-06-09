@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
 	"github.com/google/uuid"
@@ -89,4 +92,47 @@ func (r *BulletinRepo) Update(bulletin *models.Bulletin) error {
 
 func (r *BulletinRepo) Delete(id uuid.UUID) error {
 	return r.db.Delete(&models.Bulletin{}, "id = ?", id).Error
+}
+
+// ResolveRecipients returns the user IDs that should be notified for a bulletin
+// of the given scope, excluding the author and any external customer-role users.
+// Only active (status=1), non-soft-deleted users are returned.
+//
+//	scope_type "province" -> users whose province_id = scopeID
+//	scope_type "region"   -> users whose region_id = scopeID OR whose province_id
+//	                         belongs to a province under that region
+//	scope_type "all"      -> all eligible users
+func (r *BulletinRepo) ResolveRecipients(scopeType string, scopeID *uuid.UUID, excludeUserID uuid.UUID) ([]uuid.UUID, error) {
+	q := r.db.Model(&models.User{}).
+		Where("status = ?", 1).
+		Where("id <> ?", excludeUserID).
+		Where("id NOT IN (?)",
+			r.db.Table("user_roles AS ur").
+				Select("ur.user_id").
+				Joins("JOIN roles ro ON ro.id = ur.role_id AND ro.deleted_at IS NULL").
+				Where("ro.code = ?", "customer"))
+
+	switch scopeType {
+	case "all":
+		// no extra scope filter
+	case "province":
+		if scopeID == nil {
+			return nil, errors.New("scope_id required for province scope")
+		}
+		q = q.Where("province_id = ?", *scopeID)
+	case "region":
+		if scopeID == nil {
+			return nil, errors.New("scope_id required for region scope")
+		}
+		q = q.Where("region_id = ? OR province_id IN (?)", *scopeID,
+			r.db.Model(&models.Province{}).Select("id").Where("region_id = ?", *scopeID))
+	default:
+		return nil, fmt.Errorf("unknown scope_type: %s", scopeType)
+	}
+
+	var ids []uuid.UUID
+	if err := q.Pluck("id", &ids).Error; err != nil {
+		return nil, err
+	}
+	return ids, nil
 }

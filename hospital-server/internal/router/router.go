@@ -36,7 +36,7 @@ func Setup(r *gin.Engine, db *gorm.DB, enforcer *casbin.Enforcer, store *storage
 	roleSvc := service.NewRoleService(roleRepo, enforcer)
 	hospitalSvc := service.NewHospitalService(hospitalRepo)
 	ticketSvc := service.NewTicketService(ticketRepo, asynqClient)
-	bulletinSvc := service.NewBulletinService(bulletinRepo)
+	bulletinSvc := service.NewBulletinService(bulletinRepo, asynqClient)
 	notificationSvc := service.NewNotificationService(notificationRepo)
 	reportSvc := service.NewReportService(reportRepo)
 
