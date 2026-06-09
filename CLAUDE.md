@@ -7,7 +7,7 @@
 ```
 hospital/
 ├── hospital-server/       # Go 后端（Gin + GORM + PostgreSQL）
-├── hospital-web/          # React 前端（待开发，Phase 4-6）
+├── hospital-web/          # React 前端（已完成，Phase 4-6）
 │   ├── packages/admin/    # 管理端 SPA
 │   ├── packages/portal/   # 客户门户 SPA
 │   └── packages/shared/   # 共享组件库
