@@ -2,20 +2,23 @@ package service
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/dttbd/hospital-server/internal/dto"
 	"github.com/dttbd/hospital-server/internal/models"
+	"github.com/dttbd/hospital-server/internal/queue"
 	"github.com/dttbd/hospital-server/internal/repository"
 	"github.com/google/uuid"
 )
 
 type BulletinService struct {
-	repo *repository.BulletinRepo
+	repo        *repository.BulletinRepo
+	asynqClient *queue.Client
 }
 
-func NewBulletinService(repo *repository.BulletinRepo) *BulletinService {
-	return &BulletinService{repo: repo}
+func NewBulletinService(repo *repository.BulletinRepo, asynqClient *queue.Client) *BulletinService {
+	return &BulletinService{repo: repo, asynqClient: asynqClient}
 }
 
 func (s *BulletinService) List(q *dto.BulletinFilterQuery) ([]models.Bulletin, int64, error) {
@@ -93,6 +96,7 @@ func (s *BulletinService) Publish(id uuid.UUID) (*models.Bulletin, error) {
 		return nil, err
 	}
 
+	wasPublished := bulletin.Status == 1
 	now := time.Now()
 	bulletin.Status = 1
 	bulletin.PublishedAt = &now
@@ -100,5 +104,45 @@ func (s *BulletinService) Publish(id uuid.UUID) (*models.Bulletin, error) {
 	if err := s.repo.Update(bulletin); err != nil {
 		return nil, err
 	}
+
+	// Notify in-scope users only on the first draft->published transition.
+	if !wasPublished && s.asynqClient != nil {
+		s.notifyPublish(bulletin)
+	}
 	return bulletin, nil
+}
+
+// notifyPublish resolves recipients synchronously, then enqueues in-app +
+// WeChat notifications asynchronously (mirrors the ticket notification pattern).
+func (s *BulletinService) notifyPublish(b *models.Bulletin) {
+	recipients, err := s.repo.ResolveRecipients(b.ScopeType, b.ScopeID, b.AuthorID)
+	if err != nil {
+		log.Printf("failed to resolve bulletin recipients: %v", err)
+		return
+	}
+	if len(recipients) == 0 {
+		return
+	}
+	bid := b.ID
+	title := "新公告：" + b.Title
+	content := b.Title
+	go func() {
+		if err := s.asynqClient.EnqueueNotification(&queue.NotificationPayload{
+			UserIDs: recipients,
+			Title:   title,
+			Content: content,
+			Type:    "bulletin",
+			RefType: "bulletin",
+			RefID:   &bid,
+		}); err != nil {
+			log.Printf("failed to enqueue bulletin notification: %v", err)
+		}
+		if werr := s.asynqClient.EnqueueWechatMsg(&queue.WechatMsgPayload{
+			UserIDs: recipients,
+			Title:   title,
+			Content: content,
+		}); werr != nil {
+			log.Printf("failed to enqueue bulletin wechat msg: %v", werr)
+		}
+	}()
 }
