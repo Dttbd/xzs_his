@@ -51,8 +51,11 @@ golang-migrate 集成，初始 schema 迁移脚本。`--migrate` 标志切换模
 ### ~~9. 密码修改~~ ✅ 已完成
 后端 API + 管理端顶栏下拉菜单中的修改密码对话框。Portal 也支持。
 
-### ~~10. 前端测试~~ → 保留为 TODO
-后续按需添加 Vitest + Playwright。
+### ~~10. 前端测试~~ ✅ 基础框架已完成
+Vitest starter suite + Playwright 登录冒烟已在 `hospital-web` 配置完成：
+- **Vitest**（`@hospital/shared`）：12 个测试 — `cn()` 工具函数、`StatusBadge` 组件、`loginApi`（vi.mock axios）、`useAuthStore` 状态变更
+- **Playwright**（仓库根）：2 个 E2E 冒烟——登录成功跳转、登录失败显示错误（后端全部 mock，无需真实服务）
+- 运行命令：`pnpm test`（Vitest）、`pnpm test:e2e`（Playwright）
 
 ### ~~11. 生产部署优化~~ ✅ 部分完成
 - ECharts code splitting 已完成（主 bundle 1.66MB → 501KB）

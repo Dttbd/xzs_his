@@ -28,9 +28,19 @@
     "tailwind-merge": "^3.5.0",
     "zustand": "^5.0.12"
   },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "vite": "^8.0.3"
+    "@vitejs/plugin-react": "^6.0.1",
+    "jsdom": "^29.1.1",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.8"
   }
 }

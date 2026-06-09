@@ -5,9 +5,12 @@
     "dev:admin": "pnpm -F @hospital/admin dev",
     "dev:portal": "pnpm -F @hospital/portal dev",
     "build:admin": "pnpm -F @hospital/admin build",
-    "build:portal": "pnpm -F @hospital/portal build"
+    "build:portal": "pnpm -F @hospital/portal build",
+    "test": "pnpm -F @hospital/shared test",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "typescript": "^6.0.2"
   }
 }
